@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
-from My_DataLoader import grayscale_transforms, rgb_transforms
+from My_DataLoader import rgb_transforms
 import torchvision.transforms.functional as TF
 
 def train_loop(
