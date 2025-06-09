@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # Run training loop for 1 epoch
     train_loop(
         dataloader=dataloader,
-        epochs=1,
+        epochs=10,
         device="cuda"  # or "cpu"
     )
 
