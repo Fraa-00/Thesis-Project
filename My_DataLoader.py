@@ -32,7 +32,7 @@ class Images(Dataset):
         Scansiona ricorsivamente la root_dir per trovare tutti i percorsi delle immagini
         e popolare le liste self.image_paths e self.ground_truths.
         """
-        print(f"Scansione della directory: {self.root_dir}")
+        # print(f"Scansione della directory: {self.root_dir}")
         # os.walk attraversa la directory ad albero (root, dirs, files)
         for dirpath, _, filenames in os.walk(self.root_dir):
             for filename in filenames:
