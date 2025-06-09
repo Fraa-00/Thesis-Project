@@ -18,6 +18,6 @@ class my_loss(nn.Module):
         dtheta = target_theta_rad - pred_theta_rad
         dtheta = torch.abs(torch.sin(dtheta))
 
-        loss = 50 (dx + dy) + 10 * dtheta
+        loss = 50 * (dx + dy) + 10 * dtheta
         
         return loss.mean()
