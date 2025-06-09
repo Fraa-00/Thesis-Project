@@ -19,8 +19,7 @@ if __name__ == "__main__":
     train_loop(
         dataloader=dataloader,
         epochs=10,
-        device="cuda", 
-        val_loader=dataloader # or "cpu",
+        device="cuda", # or "cpu",
     )
     
 
