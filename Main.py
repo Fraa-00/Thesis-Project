@@ -6,7 +6,7 @@ from Training import train_loop
 
 if __name__ == "__main__":
     # Set your dataset root directory here
-    root_dir = '/kaggle/input/sf-xs/sf_xs'
+    root_dir = "/kaggle/input/sf-xs/sf_xs/train"
 
     # Create dataset and dataloader
     dataset = Images(root_dir)
