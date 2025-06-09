@@ -78,9 +78,7 @@ class Images(Dataset):
 
             return (latitude, longitude, bearing)
         except (IndexError, ValueError) as e:
-            error += 1
-            # raise ValueError(f"Impossibile estrarre i valori da '{filename}': {e}")
-        print(error)
+            raise ValueError(f"Impossibile estrarre i valori da '{filename}': {e}")
 
     def __len__(self):
         """
