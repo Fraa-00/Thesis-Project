@@ -113,7 +113,7 @@ class MarepoHead(nn.Module):
             self.fc3 = nn.Conv2d(self.head_channels, 3, 1, 1, 0)
 
         # Learn scene coordinates relative to a mean coordinate (e.g. center of the scene).
-        self.register_buffer("mean", mean.clone().detach().view(1, 3, 1, 1))
+        # self.register_buffer("mean", mean.clone().detach().view(1, 3, 1, 1))
 
     def forward(self, res):
         x = F.relu(self.res3_conv1(res))
