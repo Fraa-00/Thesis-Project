@@ -63,9 +63,9 @@ class MarepoHead(nn.Module):
     """
 
     def __init__(self,
-                 mean,
-                 num_head_blocks,
-                 use_homogeneous,
+                 mean = 0,
+                 num_head_blocks = 1,
+                 use_homogeneous = True,
                  homogeneous_min_scale=0.01,
                  homogeneous_max_scale=4.0,
                  in_channels=512):
@@ -141,7 +141,7 @@ class MarepoHead(nn.Module):
             sc = sc[:, :3] / h_slice
 
         # Add the mean to the predicted coordinates.
-        sc += self.mean
+        # sc += self.mean
 
         return sc
     
@@ -155,7 +155,7 @@ class Marepo_Regressor(nn.Module):
 
     OUTPUT_SUBSAMPLE = 8
 
-    def __init__(self, mean, num_head_blocks, use_homogeneous, num_encoder_features=512, config={}):
+    def __init__(self, mean = 0, num_head_blocks = 1, use_homogeneous = True, num_encoder_features=512, config={}):
         """
         Constructor.
 

@@ -8,7 +8,7 @@ from My_DataLoader import grayscale_transforms, rgb_transforms
 
 def train_loop(
     dataloader: DataLoader,
-    mean,
+    mean = 0,
     num_head_blocks=1,
     use_homogeneous=True,
     use_second_encoder=None,  # 'dino' or 'megaloc' or None
@@ -53,13 +53,12 @@ def train_loop(
             targets = targets.to(device)
 
             # Main encoder features
-            feat1 = marepo.get_features(imgs)
+            feat1 = marepo.get_features(grayscale_transforms(imgs))
             feat1_flat = feat1.flatten(2).permute(0, 2, 1)  # (B, N, C)
 
             # Second encoder features (if any)
             if second_encoder:
-                imgs_rgb = imgs.repeat(1, 3, 1, 1)  # Convert grayscale to 3ch
-                feat2 = second_encoder(imgs_rgb)
+                feat2 = second_encoder(rgb_transforms(imgs))
                 feat2_flat = feat2.flatten(2).permute(0, 2, 1)
                 feats = torch.cat([feat1_flat, feat2_flat], dim=-1)
             else:

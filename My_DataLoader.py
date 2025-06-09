@@ -16,8 +16,8 @@ class Images(Dataset):
         Inizializza il dataset con la root directory e le trasformazioni per RGB e Grayscale.
         """
         self.root_dir = root_dir
-        self.rgb_transform = rgb_transform
-        self.grayscale_transform = grayscale_transform
+        '''     self.rgb_transform = rgb_transform
+        self.grayscale_transform = grayscale_transform'''
         self.image_paths = []
         self.ground_truths = []
 
@@ -85,7 +85,7 @@ class Images(Dataset):
 
     def __getitem__(self, idx, color=True):
         """
-        Restituisce il campione (immagine RGB, immagine in scala di grigi e ground truth)
+        Restituisce il campione (immagine RG o immagine in scala di grigi e ground truth)
         per l'indice dato.
 
         Args:
@@ -114,21 +114,35 @@ class Images(Dataset):
         # Restituisce entrambe le versioni dell'immagine e la ground truth
         return image, ground_truth_tensor
 
-# --- Definizione delle trasformazioni per immagini RGB ---
-# Queste trasformazioni sono tipiche per i modelli pre-addestrati su ImageNet (3 canali).
-rgb_transforms = transforms.Compose([
-    transforms.Resize((256, 256)), # Ridimensiona l'immagine a una dimensione uniforme
-    transforms.ToTensor(),         # Converte l'immagine PIL in un tensor PyTorch [C, H, W] e scala a [0.0, 1.0]
-    # Normalizzazione con media e deviazione standard di ImageNet
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
+def rgb_transforms():
+    """
+    Restituisce un oggetto transforms.Compose per immagini RGB.
 
-# --- Definizione delle trasformazioni per immagini in scala di grigi ---
-# Queste trasformazioni includono la conversione a 1 canale e la normalizzazione specifica.
-grayscale_transforms = transforms.Compose([
-    transforms.Resize((256, 256)),      # Ridimensiona l'immagine
-    transforms.Grayscale(num_output_channels=1), # CONVERTI L'IMMAGINE IN SCALA DI GRIGI (1 CANALE)
-    transforms.ToTensor(),              # Converte in tensor PyTorch [1, H, W] e scala a [0.0, 1.0]
-    # Normalizzazione per dati in scala di grigi scalati tra 0 e 1, spostando i valori a [-1, 1]
-    transforms.Normalize(mean=[0.5], std=[0.5])
-])
+    Queste trasformazioni includono:
+    - Ridimensionamento a 256x256.
+    - Conversione in tensore PyTorch.
+    - Normalizzazione con media e deviazione standard di ImageNet.
+    """
+    return transforms.Compose([
+        transforms.Resize((256, 256)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+def grayscale_transforms():
+    """
+    Restituisce un oggetto transforms.Compose per immagini in scala di grigi.
+
+    Queste trasformazioni includono:
+    - Ridimensionamento a 256x256.
+    - Conversione in scala di grigi (1 canale).
+    - Conversione in tensore PyTorch.
+    - Normalizzazione per valori tra 0 e 1, spostando a [-1, 1].
+    """
+    return transforms.Compose([
+        transforms.Resize((256, 256)),
+        transforms.Grayscale(num_output_channels=1),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5], std=[0.5])
+    ])
+

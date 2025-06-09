@@ -6,10 +6,10 @@ from Training import train_loop
 
 if __name__ == "__main__":
     # Set your dataset root directory here
-    root_dir = "path/to/your/images"
+    root_dir = '/kaggle/input/sf-xs/sf_xs'
 
     # Create dataset and dataloader
-    dataset = Images(root_dir, grayscale_transform=grayscale_transforms())
+    dataset = Images(root_dir)
     dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
 
     # Run training loop for 1 epoch
