@@ -7,75 +7,57 @@ import torchvision.transforms.functional as TF
 from My_Loss import my_loss
 
 def train_loop(
-    train_loader: DataLoader,
-    val_loader: DataLoader,
-    mean=0,
+    dataloader: DataLoader,
+    mean = 0,
     num_head_blocks=1,
     use_homogeneous=True,
-    use_second_encoder=None,  # 'dino', 'megaloc', or None
+    use_second_encoder=None,  # 'dino' or 'megaloc' or None
     epochs=10,
-    patience=3,
     device='cuda'
 ):
-    """
-    Esempio di training con validazione.
-
-    Parametri:
-      - train_loader: DataLoader per il training set
-      - val_loader: DataLoader per il validation set
-      - mean, num_head_blocks, use_homogeneous: parametri di Marepo_Regressor
-      - use_second_encoder: None | 'dino' | 'megaloc'
-      - epochs: numero massimo di epoche
-      - patience: epoche di attesa per early stopping
-      - device: 'cuda' o 'cpu'
-    """
-    # Inizializza encoder principale e opzionale
+    # Main encoder
     marepo = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device)
+    # Optional second encoder
     if use_second_encoder == 'dino':
-        second_encoder = DinoV2().to(device)
+        second_encoder = DinoV2()
     elif use_second_encoder == 'megaloc':
-        second_encoder = MegaLoc().to(device)
+        second_encoder = MegaLoc()
     else:
         second_encoder = None
 
-    # Calcola dimensione input per MLP
+    # MLP input dim: sum of feature dims if using two encoders, else just Marepo
     with torch.no_grad():
         dummy = torch.zeros(1, 1, 64, 64).to(device)
         feat1 = marepo.get_features(dummy)
-        feat1_flat = feat1.flatten(2).permute(0, 2, 1)
+        feat1_flat = feat1.flatten(2).permute(0, 2, 1)  # (B, N, C)
         dim1 = feat1_flat.shape[-1]
-        dim2 = 0
         if second_encoder:
-            feat2 = second_encoder(dummy.repeat(1, 3, 1, 1))
+            feat2 = second_encoder(dummy.repeat(1,3,1,1))  # Assume 3ch input for Dino/MegaLoc
             feat2_flat = feat2.flatten(2).permute(0, 2, 1)
             dim2 = feat2_flat.shape[-1]
+        else:
+            dim2 = 0
 
-    mlp = MLP(input_dim=dim1 + dim2).to(device)
+    mlp = MLP(input_dim=dim1+dim2).to(device)
 
-    # Ottimizzatore e loss
-    params = list(marepo.parameters()) + list(mlp.parameters())
-    if second_encoder:
-        params += list(second_encoder.parameters())
-    optimizer = Adam(params)
+    optimizer = Adam(list(marepo.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
     loss_fn = my_loss()
 
-    best_val_loss = float('inf')
-    bad_epochs = 0
-
-    for epoch in range(1, epochs + 1):
-        # ----- Training -----
+    for epoch in range(epochs):
         marepo.train()
         if second_encoder:
             second_encoder.train()
         mlp.train()
+        for batch in dataloader:
+            imgs, targets = batch  # imgs: (B, 1, H, W), targets: (B, N, 3)
+            imgs = imgs.to(device)
+            targets = targets.to(device)
 
-        running_loss = 0
-        for imgs, targets in train_loader:
-            imgs, targets = imgs.to(device), targets.to(device)
-
-            # Estrai features
+            # Main encoder features
             feat1 = marepo.get_features(TF.rgb_to_grayscale(imgs))
-            feat1_flat = feat1.flatten(2).permute(0, 2, 1)
+            feat1_flat = feat1.flatten(2).permute(0, 2, 1)  # (B, N, C)
+
+            # Second encoder features (if any)
             if second_encoder:
                 feat2 = second_encoder(imgs)
                 feat2_flat = feat2.flatten(2).permute(0, 2, 1)
@@ -83,57 +65,14 @@ def train_loop(
             else:
                 feats = feat1_flat
 
-            pooled = torch.max(feats, dim=1)[0]
-            preds = mlp(pooled)
+            feats_pooled = torch.max(feats, dim=1)[0]  # oppure torch.mean(feat, dim=1)
+            
+            # MLP regression
+            preds = mlp(feats_pooled)  # (B, 3)
             loss = loss_fn(preds, targets)
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item()
-
-        avg_train_loss = running_loss / len(train_loader)
-
-        # ----- Validazione -----
-        marepo.eval()
-        if second_encoder:
-            second_encoder.eval()
-        mlp.eval()
-
-        val_loss = 0
-        with torch.no_grad():
-            for imgs, targets in val_loader:
-                imgs, targets = imgs.to(device), targets.to(device)
-                feat1 = marepo.get_features(TF.rgb_to_grayscale(imgs))
-                feat1_flat = feat1.flatten(2).permute(0, 2, 1)
-                if second_encoder:
-                    feat2 = second_encoder(imgs)
-                    feat2_flat = feat2.flatten(2).permute(0, 2, 1)
-                    feats = torch.cat([feat1_flat, feat2_flat], dim=-1)
-                else:
-                    feats = feat1_flat
-
-                pooled = torch.max(feats, dim=1)[0]
-                preds = mlp(pooled)
-                val_loss += loss_fn(preds, targets).item()
-
-        avg_val_loss = val_loss / len(val_loader)
-        print(f"Epoch {epoch}/{epochs} - Train Loss: {avg_train_loss:.4f} - Val Loss: {avg_val_loss:.4f}")
-
-        # Early stopping
-        if avg_val_loss < best_val_loss:
-            best_val_loss = avg_val_loss
-            bad_epochs = 0
-            torch.save({
-                'marepo': marepo.state_dict(),
-                'mlp': mlp.state_dict(),
-                **({'second': second_encoder.state_dict()} if second_encoder else {})
-            }, 'best_model.pth')
-        else:
-            bad_epochs += 1
-            if bad_epochs >= patience:
-                print("Early stopping attivato. Training interrotto.")
-                break
-
-    print("Training completato.")
+        print(f"Epoch {epoch+1}/{epochs} - Loss: {loss.item():.4f}")
