@@ -74,7 +74,7 @@ class Images(Dataset):
             # I campi di interesse
             latitude = float(parts[5])
             longitude = float(parts[6])
-            bearing = float(parts[8])
+            bearing = float(parts[9])
 
             return (latitude, longitude, bearing)
         except (IndexError, ValueError) as e:
