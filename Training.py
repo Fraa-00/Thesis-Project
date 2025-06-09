@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
 from My_DataLoader import grayscale_transforms, rgb_transforms
+import torchvision.transforms.functional as TF
 
 def train_loop(
     dataloader: DataLoader,
@@ -53,7 +54,7 @@ def train_loop(
             targets = targets.to(device)
 
             # Main encoder features
-            feat1 = marepo.get_features(grayscale_transforms(imgs))
+            feat1 = marepo.get_features(TF.rgb_to_grayscale(imgs))
             feat1_flat = feat1.flatten(2).permute(0, 2, 1)  # (B, N, C)
 
             # Second encoder features (if any)

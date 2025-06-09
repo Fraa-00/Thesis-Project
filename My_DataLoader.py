@@ -101,7 +101,6 @@ class Images(Dataset):
         ground_truth = self.ground_truths[idx]
 
         # Carica l'immagine usando PIL e convertila sempre in RGB inizialmente
-        # Questo garantisce che entrambe le trasformazioni (RGB e Grayscale) partano dallo stesso formato base
         original_image = Image.open(img_path).convert('RGB')
 
         # Applica le trasformazioni
@@ -113,35 +112,9 @@ class Images(Dataset):
         # Restituisce entrambe le versioni dell'immagine e la ground truth
         return image, ground_truth_tensor
 
-def rgb_transforms():
-    """
-    Restituisce un oggetto transforms.Compose per immagini RGB.
-
-    Queste trasformazioni includono:
-    - Ridimensionamento a 256x256.
-    - Conversione in tensore PyTorch.
-    - Normalizzazione con media e deviazione standard di ImageNet.
-    """
-    return transforms.Compose([
-        transforms.Resize((256, 256)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-
-def grayscale_transforms():
-    """
-    Restituisce un oggetto transforms.Compose per immagini in scala di grigi.
-
-    Queste trasformazioni includono:
-    - Ridimensionamento a 256x256.
-    - Conversione in scala di grigi (1 canale).
-    - Conversione in tensore PyTorch.
-    - Normalizzazione per valori tra 0 e 1, spostando a [-1, 1].
-    """
-    return transforms.Compose([
-        transforms.Resize((256, 256)),
-        transforms.Grayscale(num_output_channels=1),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5], std=[0.5])
-    ])
-
+rgb_transforms = transforms.Compose([
+    transforms.Resize((256, 256)), # Ridimensiona l'immagine a una dimensione uniforme
+    transforms.ToTensor(),         # Converte l'immagine PIL in un tensor PyTorch [C, H, W] e scala a [0.0, 1.0]
+    # Normalizzazione con media e deviazione standard di ImageNet
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
