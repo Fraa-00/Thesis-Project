@@ -63,6 +63,7 @@ class Images(Dataset):
         Raises:
             ValueError: Se non è possibile estrarre i valori.
         """
+        error = 0
         try:
             # Rimuove estensione se presente
             filename = filename.strip().lower()
