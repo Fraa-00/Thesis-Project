@@ -7,8 +7,8 @@ class my_loss(nn.Module):
 
     def forward(self, pred, target):
         # pred and target: shape (..., 3) with (x, y, theta)
-        dx = torch.abs(pred[:, 0] - target[:, 0])
-        dy = torch.abs(pred[:, 1] - target[:, 1])
+        dx = pred[:, 0] - target[:, 0]
+        dy = pred[:, 1] - target[:, 1]
 
         # Conversione in radianti
         target_theta_rad = torch.deg2rad(target[:, 2])
@@ -18,6 +18,10 @@ class my_loss(nn.Module):
         dtheta = target_theta_rad - pred_theta_rad
         dtheta = torch.abs(torch.sin(dtheta))
 
+<<<<<<< HEAD
         loss = 50 * (dx + dy) + 10 * dtheta
+=======
+        loss = dx**2 + dy**2 + dtheta**2
+>>>>>>> parent of f5e8432 (Update My_Loss.py)
         
         return loss.mean()
