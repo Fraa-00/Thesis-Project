@@ -63,6 +63,7 @@ class Images(Dataset):
         Raises:
             ValueError: Se non è possibile estrarre i valori.
         """
+        error = 0
         try:
             # Rimuove estensione se presente
             filename = filename.strip().lower()
@@ -77,7 +78,9 @@ class Images(Dataset):
 
             return (latitude, longitude, bearing)
         except (IndexError, ValueError) as e:
-            raise ValueError(f"Impossibile estrarre i valori da '{filename}': {e}")
+            error += 1
+            # raise ValueError(f"Impossibile estrarre i valori da '{filename}': {e}")
+        print(error)
 
     def __len__(self):
         """
