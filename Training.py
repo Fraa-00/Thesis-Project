@@ -17,7 +17,19 @@ def train_loop(
     patience=3,
     device='cuda'
 ):
-    # Initialize encoders and MLP
+    """
+    Esempio di training con validazione.
+
+    Parametri:
+      - train_loader: DataLoader per il training set
+      - val_loader: DataLoader per il validation set
+      - mean, num_head_blocks, use_homogeneous: parametri di Marepo_Regressor
+      - use_second_encoder: None | 'dino' | 'megaloc'
+      - epochs: numero massimo di epoche
+      - patience: epoche di attesa per early stopping
+      - device: 'cuda' o 'cpu'
+    """
+    # Inizializza encoder principale e opzionale
     marepo = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device)
     if use_second_encoder == 'dino':
         second_encoder = DinoV2().to(device)
@@ -26,7 +38,7 @@ def train_loop(
     else:
         second_encoder = None
 
-    # Determine input dimension for MLP
+    # Calcola dimensione input per MLP
     with torch.no_grad():
         dummy = torch.zeros(1, 1, 64, 64).to(device)
         feat1 = marepo.get_features(dummy)
@@ -40,7 +52,7 @@ def train_loop(
 
     mlp = MLP(input_dim=dim1 + dim2).to(device)
 
-    # Setup optimizer and loss
+    # Ottimizzatore e loss
     params = list(marepo.parameters()) + list(mlp.parameters())
     if second_encoder:
         params += list(second_encoder.parameters())
@@ -61,7 +73,7 @@ def train_loop(
         for imgs, targets in train_loader:
             imgs, targets = imgs.to(device), targets.to(device)
 
-            # Extract features
+            # Estrai features
             feat1 = marepo.get_features(TF.rgb_to_grayscale(imgs))
             feat1_flat = feat1.flatten(2).permute(0, 2, 1)
             if second_encoder:
@@ -71,8 +83,8 @@ def train_loop(
             else:
                 feats = feat1_flat
 
-            feats_pooled = torch.max(feats, dim=1)[0]
-            preds = mlp(feats_pooled)
+            pooled = torch.max(feats, dim=1)[0]
+            preds = mlp(pooled)
             loss = loss_fn(preds, targets)
 
             optimizer.zero_grad()
@@ -83,7 +95,7 @@ def train_loop(
 
         avg_train_loss = running_loss / len(train_loader)
 
-        # ----- Validation -----
+        # ----- Validazione -----
         marepo.eval()
         if second_encoder:
             second_encoder.eval()
@@ -102,10 +114,9 @@ def train_loop(
                 else:
                     feats = feat1_flat
 
-                feats_pooled = torch.max(feats, dim=1)[0]
-                preds = mlp(feats_pooled)
-                loss = loss_fn(preds, targets)
-                val_loss += loss.item()
+                pooled = torch.max(feats, dim=1)[0]
+                preds = mlp(pooled)
+                val_loss += loss_fn(preds, targets).item()
 
         avg_val_loss = val_loss / len(val_loader)
         print(f"Epoch {epoch}/{epochs} - Train Loss: {avg_train_loss:.4f} - Val Loss: {avg_val_loss:.4f}")
@@ -122,7 +133,7 @@ def train_loop(
         else:
             bad_epochs += 1
             if bad_epochs >= patience:
-                print("Early stopping triggered. Training stopped.")
+                print("Early stopping attivato. Training interrotto.")
                 break
 
-    print("Training complete.")
+    print("Training completato.")
