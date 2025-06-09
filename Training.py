@@ -39,6 +39,7 @@ def train_loop(
             dim2 = feat2_flat.shape[-1]
         else:
             dim2 = 0
+
     mlp = MLP(input_dim=dim1+dim2).to(device)
 
     optimizer = Adam(list(marepo.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
@@ -66,8 +67,11 @@ def train_loop(
             else:
                 feats = feat1_flat
 
+            feat_pooled = torch.max(feat, dim=1)[0]  # oppure torch.mean(feat, dim=1)
+            out = mlp(feat_pooled)  # (B, 3)
             # MLP regression
-            preds = mlp(feats)  # (B, N, 3)
+
+            preds = mlp(out)  # (B, N, 3)
             print(preds, preds.shape, targets, targets.shape)
             loss = loss_fn(preds, targets)
 
