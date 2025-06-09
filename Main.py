@@ -1,7 +1,7 @@
 # Main
 
 from torch.utils.data import DataLoader
-from My_DataLoader import Images, grayscale_transforms, rgb_transforms
+from My_DataLoader import Images, rgb_transforms
 from Training import train_loop
 
 if __name__ == "__main__":
