@@ -6,6 +6,7 @@ from torch.optim import Adam
 from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
 from My_DataLoader import rgb_transforms
 import torchvision.transforms.functional as TF
+from My_Loss import my_loss
 
 def train_loop(
     dataloader: DataLoader,
@@ -41,7 +42,7 @@ def train_loop(
     mlp = MLP(input_dim=dim1+dim2).to(device)
 
     optimizer = Adam(list(marepo.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
-    loss_fn = torch.nn.MSELoss()
+    loss_fn = my_loss()
 
     for epoch in range(epochs):
         marepo.train()
