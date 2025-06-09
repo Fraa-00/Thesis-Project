@@ -18,6 +18,6 @@ class CustomLoss(nn.Module):
         dtheta = target_theta_rad - pred_theta_rad
         dtheta = torch.abs(torch.sin(dtheta))
 
-        loss = dx**2 + dy**2 + dtheta**2
+        loss = 50 * (dx**2 + dy**2) + 10 * dtheta**2
         
         return loss.mean()
