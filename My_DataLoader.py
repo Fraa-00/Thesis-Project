@@ -43,7 +43,6 @@ class Images(Dataset):
                         ground_truth = self.ground_truth_extraction(filename)
                         self.image_paths.append(img_path)
                         self.ground_truths.append(ground_truth)
-                        print(self.ground_truths[-1])  # Stampa la ground truth estratta
                     except ValueError as e:
                         print(f"Skipping file '{filename}' due to parsing error: {e}")
                     except Exception as e:
