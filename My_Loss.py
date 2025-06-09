@@ -17,15 +17,7 @@ class my_loss(nn.Module):
         # Differenza angolare
         dtheta = target_theta_rad - pred_theta_rad
         dtheta = torch.abs(torch.sin(dtheta))
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-        loss = 50 * (dx + dy) + 10 * dtheta
-=======
-        loss = dx**2 + dy**2 + dtheta**2
->>>>>>> parent of f5e8432 (Update My_Loss.py)
-=======
-        loss = dx**2 + dy**2 + dtheta**2
->>>>>>> parent of f5e8432 (Update My_Loss.py)
         
-        return loss.mean()
+        loss = 50 * (dx + dy) + 10 * dtheta
+        
+        return loss
