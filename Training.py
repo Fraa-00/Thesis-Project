@@ -67,7 +67,7 @@ def train_loop(
             else:
                 feats = feat1_flat
 
-            feat_pooled = torch.max(feat, dim=1)[0]  # oppure torch.mean(feat, dim=1)
+            feat_pooled = torch.max(feats, dim=1)[0]  # oppure torch.mean(feat, dim=1)
             out = mlp(feat_pooled)  # (B, 3)
             # MLP regression
 
