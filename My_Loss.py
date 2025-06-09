@@ -20,4 +20,4 @@ class my_loss(nn.Module):
         
         loss = 50 * (dx + dy) + 10 * dtheta
         
-        return loss
+        return loss.mean()
