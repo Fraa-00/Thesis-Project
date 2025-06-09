@@ -71,7 +71,6 @@ def train_loop(
             
             # MLP regression
             preds = mlp(feats_pooled)  # (B, 3)
-            print(preds, preds.shape, targets, targets.shape)
             loss = loss_fn(preds, targets)
 
             optimizer.zero_grad()
