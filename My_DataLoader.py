@@ -11,13 +11,12 @@ class Images(Dataset):
     estrarre il ground truth dal nome del file e applicare trasformazioni sia per
     la versione RGB che per quella in scala di grigi.
     """
-    def __init__(self, root_dir, rgb_transform=None, grayscale_transform=None):
+    def __init__(self, root_dir, rgb_transform=None):
         """
         Inizializza il dataset con la root directory e le trasformazioni per RGB e Grayscale.
         """
         self.root_dir = root_dir
-        '''     self.rgb_transform = rgb_transform
-        self.grayscale_transform = grayscale_transform'''
+        self.rgb_transform = rgb_transform
         self.image_paths = []
         self.ground_truths = []
 
@@ -86,7 +85,7 @@ class Images(Dataset):
         """
         return len(self.image_paths)
 
-    def __getitem__(self, idx, color=True):
+    def __getitem__(self, idx):
         """
         Restituisce il campione (immagine RG o immagine in scala di grigi e ground truth)
         per l'indice dato.
@@ -106,10 +105,7 @@ class Images(Dataset):
         original_image = Image.open(img_path).convert('RGB')
 
         # Applica le trasformazioni
-        if color:
-            image = self.rgb_transform(original_image)
-        else:
-            image = self.grayscale_transform(original_image)
+        image = self.rgb_transform(original_image)
 
         # Converte la ground truth in un tensor di PyTorch
         ground_truth_tensor = torch.tensor(ground_truth, dtype=torch.float32)
