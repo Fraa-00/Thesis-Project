@@ -61,21 +61,23 @@ class Images(Dataset):
             tuple: Una tupla contenente (latitudine, longitudine, bearing in gradi) come float.
 
         Raises:
-            ValueError: Se non è possibile estrarre i valori o se il bearing non è convertibile.
+            ValueError: Se non è possibile estrarre i valori.
         """
-        match = re.search(r'@(?:[^@]+)@(?:[^@]+)@(?:[^@]+)@(?:[^@]+)@(-?\d+\.?\d*)@(-?\d+\.?\d*)@(?:[^@]+)@(?:[^@]+)@(?:[^@]+)@(?:[^@]+)@(\d+)@(?:[^@]+)\.jpg$', filename, re.IGNORECASE)
-        if match:
-            try:
-                latitude = float(match.group(1))
-                longitude = float(match.group(2))
-                # Assuming the bearing is the last numeric part before the final '@@.jpg' and needs conversion
-                bearing = float(match.group(3)) # Assuming it's already in a unit that can be directly converted to degrees
+        try:
+            # Rimuove estensione se presente
+            filename = filename.strip().lower()
+            if filename.endswith('.jpg'):
+                filename = filename[:-4]
 
-                return (latitude, longitude, bearing)
-            except ValueError as e:
-                raise ValueError(f"Impossibile convertire i valori estratti in float per '{filename}': {e}")
-        else:
-            raise ValueError(f"Impossibile estrarre latitudine, longitudine e bearing dal nome del file: '{filename}'")
+            parts = filename.split('@')
+            # I campi di interesse
+            latitude = float(parts[5])
+            longitude = float(parts[6])
+            bearing = float(parts[8])
+
+            return (latitude, longitude, bearing)
+        except (IndexError, ValueError) as e:
+            raise ValueError(f"Impossibile estrarre i valori da '{filename}': {e}")
 
     def __len__(self):
         """
