@@ -64,7 +64,7 @@ def train_loop(
         
             
             # MLP regression
-            preds = mlp(feats_pooled)  # (B, 3)
+            preds = mlp(feats)  # (B, 3)
             loss = loss_fn(preds, targets)
 
             optimizer.zero_grad()
