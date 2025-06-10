@@ -22,8 +22,6 @@ def train_loop(
         second_encoder = DinoV2()
     elif use_second_encoder == 'megaloc':
         second_encoder = MegaLoc()
-    else:
-        second_encoder = None
 
     # MLP input dim: sum of feature dims if using two encoders, else just Marepo
     with torch.no_grad():
@@ -37,6 +35,8 @@ def train_loop(
             dim2 = feat2_flat.shape[-1]
         else:
             dim2 = 0
+    
+    print(dim1, dim2)
 
     mlp = MLP(input_dim=dim1+dim2).to(device)
 
@@ -64,6 +64,8 @@ def train_loop(
                 feats = torch.cat([feat1_flat, feat2_flat], dim=-1)
             else:
                 feats = feat1_flat
+            
+            print(feats.shape, targets.shape)
 
             feats_pooled = torch.max(feats, dim=1)[0]  # oppure torch.mean(feat, dim=1)
             
