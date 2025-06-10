@@ -31,7 +31,7 @@ def train_loop(
         second_encoder = None
         input_dim = 512
 
-    mlp = MLP(input_dim=input_dim).to(device)
+    mlp = MLP(input_dim=2*input_dim).to(device)
 
     optimizer = Adam(list(marepo.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
     loss_fn = my_loss()
@@ -52,17 +52,16 @@ def train_loop(
             # Main encoder features
             feat1 = marepo.get_features(TF.rgb_to_grayscale(imgs))
             feat1_flat = feat1.flatten(2).permute(0, 2, 1)  # (B, N, C)
+            feat1_flat = torch.max(feat1_flat, dim=1)[0]  # (B, C)
 
             # Second encoder features (if any)
             if second_encoder:
                 feat2 = second_encoder(imgs)
                 feat2_flat = feat2.flatten(2).permute(0, 2, 1)
-                feats = torch.cat([feat1_flat, feat2_flat], dim=-1)
+                feats = torch.cat([feat1_flat, feat2_flat])
             else:
                 feats = feat1_flat
-            
-
-            feats_pooled = torch.max(feats, dim=1)[0]  # oppure torch.mean(feat, dim=1)
+        
             
             # MLP regression
             preds = mlp(feats_pooled)  # (B, 3)
