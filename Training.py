@@ -25,22 +25,7 @@ def train_loop(
     else:
         second_encoder = None
 
-    # MLP input dim: sum of feature dims if using two encoders, else just Marepo
-    with torch.no_grad():
-        dummy = torch.zeros(1, 1, 64, 64).to(device)
-        feat1 = marepo.get_features(dummy)
-        feat1_flat = feat1.flatten(2).permute(0, 2, 1)  # (B, N, C)
-        dim1 = feat1_flat.shape[-1]
-        if second_encoder:
-            feat2 = second_encoder(dummy.repeat(1,3,1,1))  # Assume 3ch input for Dino/MegaLoc
-            feat2_flat = feat2.flatten(2).permute(0, 2, 1)
-            dim2 = feat2_flat.shape[-1]
-        else:
-            dim2 = 0
-    
-    print(dim1, dim2)
-
-    mlp = MLP(input_dim=dim1+dim2).to(device)
+    mlp = MLP().to(device)
 
     optimizer = Adam(list(marepo.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
     loss_fn = my_loss()
@@ -67,7 +52,6 @@ def train_loop(
             else:
                 feats = feat1_flat
             
-            print(feats.shape, targets.shape)
 
             feats_pooled = torch.max(feats, dim=1)[0]  # oppure torch.mean(feat, dim=1)
             
