@@ -6,6 +6,7 @@ from Get_dataset import rgb_transforms
 import torchvision.transforms.functional as TF
 from My_Loss import my_loss
 from Eval import evaluation_loop
+from Utils import visualize_predictions
 
 def train_loop(
     train_dataloader: DataLoader,
@@ -91,3 +92,4 @@ def train_loop(
                 break
 
     print("Training completato.")
+    visualize_predictions(marepo, mlp, second_encoder, val_dataloader, device, num_samples=5)
