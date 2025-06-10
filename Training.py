@@ -59,7 +59,7 @@ def train_loop(
             if second_encoder:
                 feat2 = second_encoder(imgs)
                 feat2_flat = feat2.flatten(2).permute(0, 2, 1)
-                feats = torch.cat([feat1_flat, feat2_flat])
+                feats = torch.cat([feat1_flat, feat2_flat], dim=1)
             else:
                 feats = feat1_flat
         
