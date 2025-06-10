@@ -45,7 +45,7 @@ def train_loop(
         mlp.train()
         running_loss = 0.0
         for batch in train_dataloader:
-            imgs, targets = batch  # imgs: (B, 1, H, W), targets: (B, N, 3)
+            imgs, targets = batch  # imgs: (B, 3, H, W), targets: (B, N, 3)
             imgs = imgs.to(device)
             targets = targets.to(device)
 
