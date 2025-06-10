@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
-from My_DataLoader import rgb_transforms
+from Get_dataset import rgb_transforms
 import torchvision.transforms.functional as TF
 from My_Loss import my_loss
 
