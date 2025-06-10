@@ -22,6 +22,8 @@ def train_loop(
         second_encoder = DinoV2()
     elif use_second_encoder == 'megaloc':
         second_encoder = MegaLoc()
+    else:
+        second_encoder = None
 
     # MLP input dim: sum of feature dims if using two encoders, else just Marepo
     with torch.no_grad():
