@@ -35,6 +35,8 @@ def train_loop(
 
     optimizer = Adam(list(marepo.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
     loss_fn = my_loss()
+    best_val_loss = float('inf')
+    bad_epochs = 0
 
     for epoch in range(epochs):
         marepo.train()
