@@ -5,15 +5,18 @@ from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
 from Get_dataset import rgb_transforms
 import torchvision.transforms.functional as TF
 from My_Loss import my_loss
+from Eval import evaluation_loop
 
 def train_loop(
-    dataloader: DataLoader,
+    train_dataloader: DataLoader,
+    val_dataloader: DataLoader,
     mean = 0,
     num_head_blocks=1,
     use_homogeneous=True,
     use_second_encoder=None,  # 'dino' or 'megaloc' or None
     epochs=10,
-    device='cuda'
+    device='cuda',
+    patience=3
 ):
     # Main encoder
     marepo = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device)
@@ -38,7 +41,7 @@ def train_loop(
         if second_encoder:
             second_encoder.train()
         mlp.train()
-        for batch in dataloader:
+        for batch in train_dataloader:
             imgs, targets = batch  # imgs: (B, 1, H, W), targets: (B, N, 3)
             imgs = imgs.to(device)
             targets = targets.to(device)
@@ -66,4 +69,23 @@ def train_loop(
             loss.backward()
             optimizer.step()
 
-        print(f"Epoch {epoch+1}/{epochs} - Loss: {loss.item():.4f}")
+            running_loss += loss.item()
+
+        avg_train_loss = running_loss / len(train_dataloader)
+        avg_val_loss = evaluation_loop(marepo, mlp, second_encoder, val_dataloader, loss_fn, device)
+        print(f"Epoch {epoch}/{epochs} - Train Loss: {avg_train_loss:.4f} - Val Loss: {avg_val_loss:.4f}")
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
+            bad_epochs = 0
+            torch.save({
+                'marepo': marepo.state_dict(),
+                'mlp': mlp.state_dict(),
+                **({'second': second_encoder.state_dict()} if second_encoder else {})
+            }, 'best_model.pth')
+        else:
+            bad_epochs += 1
+            if bad_epochs >= patience:
+                print("Early stopping attivato. Training interrotto.")
+                break
+
+    print("Training completato.")
