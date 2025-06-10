@@ -1,7 +1,7 @@
 # Main
 
 from torch.utils.data import DataLoader
-from My_DataLoader import Images, rgb_transforms
+from Get_dataset import get_dataset, rgb_transforms
 from Training import train_loop
 
 if __name__ == "__main__":
@@ -11,12 +11,15 @@ if __name__ == "__main__":
     root_dir_test = "/kaggle/input/sf-xs/sf_xs/test"
 
     # Create dataset and dataloader
-    dataset = Images(root_dir_train, rgb_transform=rgb_transforms)
-    dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
+    train_dataset = get_dataset(root_dir_train, rgb_transform=rgb_transforms)
+    train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+
+    val_dataset = get_dataset(root_dir_val, rgb_transform=rgb_transforms)
+    val_dataloader = DataLoader(val_dataset, batch_size=4, shuffle=True)
 
     # Run training loop for 1 epoch
     train_loop(
-        dataloader=dataloader,
+        dataloader=train_dataloader,
         epochs=10,
         device="cuda"  # or "cpu"
     )

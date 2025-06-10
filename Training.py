@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
-from My_DataLoader import rgb_transforms
+from Get_dataset import rgb_transforms
 import torchvision.transforms.functional as TF
 from My_Loss import my_loss
 
@@ -20,12 +20,15 @@ def train_loop(
     # Optional second encoder
     if use_second_encoder == 'dino':
         second_encoder = DinoV2()
+        input_dim = 512
     elif use_second_encoder == 'megaloc':
         second_encoder = MegaLoc()
+        input_dim = 512
     else:
         second_encoder = None
+        input_dim = 512
 
-    mlp = MLP().to(device)
+    mlp = MLP(input_dim=input_dim).to(device)
 
     optimizer = Adam(list(marepo.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
     loss_fn = my_loss()
