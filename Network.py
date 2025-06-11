@@ -226,6 +226,7 @@ class MLP(nn.Module):
             nn.ReLU(),
             nn.Linear(hidden_dim, 3)  # Regression output
         )
+        self.to("cuda" if torch.cuda.is_available() else "cpu")
 
     def forward(self, x):
         return self.net(x)

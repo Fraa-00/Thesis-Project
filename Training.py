@@ -31,7 +31,9 @@ def train_loop(
     patience=3
 ):
     # Main encoder
-    first_encoder = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device)
+    # first_encoder = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device)
+    first_encoder = DinoV2()
+    # first_encoder = MegaLoc()
     # Optional second encoder
     if use_second_encoder == 'dino':
         second_encoder = DinoV2()
@@ -45,7 +47,7 @@ def train_loop(
         second_encoder = None
         input_dim = 512
 
-    mlp = MLP(input_dim=input_dim).to(device)
+    mlp = MLP(input_dim=768).to(device)
 
     optimizer = Adam(list(first_encoder.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
     loss_fn = my_loss()
