@@ -206,31 +206,16 @@ class Marepo_Regressor(nn.Module):
         return self.transformer_head(sc, intrinsics_B33, sc_mask, random_rescale_sc)'''
 
 def DinoV2():
-
-
     model_type = "dinov2_vitb14"
     model = torch.hub.load('facebookresearch/dinov2', model_type)
-
-    # Se hai una GPU, sposta il modello sulla GPU
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-
-    # Imposta il modello in modalità valutazione (inference)
+    model = model.to("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
-
     return model
 
 def MegaLoc():
-
     model = torch.hub.load("gmberton/MegaLoc", "get_trained_model")
-
-    # Se hai una GPU, sposta il modello sulla GPU per una maggiore velocità
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-
-    # Imposta il modello in modalità valutazione (inference)
+    model = model.to("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
-
     return model
 
 class MLP(nn.Module):

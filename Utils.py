@@ -44,11 +44,12 @@ def visualize_predictions(model, mlp, second_encoder, val_loader, device, num_sa
     if num_samples == 1:
         axes = [axes]
 
-    # Denormalizza le immagini
+    # Denormalizza le immagini (sposta i tensori su GPU)
     mean = torch.tensor([0.485, 0.456, 0.406]).view(3,1,1).to(device)
     std = torch.tensor([0.229, 0.224, 0.225]).view(3,1,1).to(device)
     imgs_denorm = imgs * std + mean
-
+    
+    # Sposta su CPU solo quando necessario per visualizzazione
     for i in range(num_samples):
         # Visualizza l'immagine
         img = imgs_denorm[i].cpu().permute(1,2,0)

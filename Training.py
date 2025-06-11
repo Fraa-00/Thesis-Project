@@ -35,9 +35,11 @@ def train_loop(
     # Optional second encoder
     if use_second_encoder == 'dino':
         second_encoder = DinoV2()
+        second_encoder = second_encoder.to(device)
         input_dim = 1280  # 1792 = 512 (Marepo) + 768 (DinoV2)
     elif use_second_encoder == 'megaloc':
         second_encoder = MegaLoc()
+        second_encoder = second_encoder.to(device)
         input_dim = 8960  # 8960 = 512 (Marepo) + 8448 (MegaLoc)
     else:
         second_encoder = None
