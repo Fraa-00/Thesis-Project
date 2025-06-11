@@ -28,15 +28,14 @@ def visualize_predictions(model, mlp, second_encoder, val_loader, device, num_sa
         # Calcola le predizioni
         feat1 = model.get_features(TF.rgb_to_grayscale(imgs))
         feat1_flat = feat1.flatten(2).permute(0, 2, 1)
+        feat1_flat = torch.max(feat1_flat, dim=1)[0]  # (B, C)
         if second_encoder:
             feat2 = second_encoder(imgs)
-            feat2_flat = feat2.flatten(2).permute(0, 2, 1)
-            feats = torch.cat([feat1_flat, feat2_flat], dim=-1)
+            feats = torch.cat([feat1_flat, feat2], dim=-1)
         else:
             feats = feat1_flat
 
-        pooled = torch.max(feats, dim=1)[0]
-        preds = mlp(pooled)
+        preds = mlp(feats)
 
     # Visualizza i risultati
     num_samples = min(num_samples, len(imgs))
