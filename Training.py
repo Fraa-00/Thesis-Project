@@ -69,8 +69,8 @@ def train_loop(
             # Second encoder features (if any)
             if second_encoder:
                 feat2 = second_encoder(imgs)
-                feat2_flat = feat2.flatten(2).permute(0, 2, 1)
-                print(feat2_flat.shape, feat2.shape, 'sec enc')  # Debugging line to check shapes
+                print(feat2.shape)
+                # feat2_flat = feat2.flatten(2).permute(0, 2, 1)
                 feat2_flat = torch.max(feat2_flat, dim=1)[0]  # (B, C)
                 feats = torch.cat([feat1_flat, feat2_flat], dim=1)
             else:
