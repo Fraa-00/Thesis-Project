@@ -34,7 +34,7 @@ if __name__ == "__main__":
     train_loop(
         train_dataloader=train_dataloader,
         val_dataloader=val_dataloader,
-        use_second_encoder='megaloc',
+        use_second_encoder='dino',
         epochs=3,
         device="cuda"  # or "cpu"
     )
