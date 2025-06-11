@@ -68,8 +68,10 @@ def train_loop(
 
             # Second encoder features (if any)
             if second_encoder:
+                print('here')
                 feat2 = second_encoder(imgs)
                 feats = torch.cat([feat1_flat, feat2], dim=1)
+                print(feat2.shape, feat1_flat ,feats.shape)
             else:
                 feats = feat1_flat
         
