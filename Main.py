@@ -1,8 +1,21 @@
 # Main
 
+import torch
+import random
+import numpy as np
 from torch.utils.data import DataLoader
+
 from Get_dataset import get_dataset, rgb_transforms
 from Training import train_loop
+
+# Set seeds for reproducibility
+SEED = 42
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+np.random.seed(SEED)
+random.seed(SEED)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 
 if __name__ == "__main__":
     # Set your dataset root directory here
@@ -25,6 +38,6 @@ if __name__ == "__main__":
         epochs=1,
         device="cuda"  # or "cpu"
     )
-    
+
 
 

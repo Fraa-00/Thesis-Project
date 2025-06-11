@@ -1,12 +1,23 @@
 import torch
 from torch.utils.data import DataLoader
 from torch.optim import Adam
+import random
+import numpy as np
 from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
 from Get_dataset import rgb_transforms
 import torchvision.transforms.functional as TF
 from My_Loss import my_loss
 from Eval import evaluation_loop
 from Utils import visualize_predictions
+
+# Set seeds for reproducibility
+SEED = 42
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+np.random.seed(SEED)
+random.seed(SEED)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 
 def train_loop(
     train_dataloader: DataLoader,
