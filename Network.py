@@ -218,6 +218,8 @@ def DinoV2():
     # Imposta il modello in modalità valutazione (inference)
     model.eval()
 
+    return model
+
 def MegaLoc():
 
     model = torch.hub.load("gmberton/MegaLoc", "get_trained_model")
@@ -228,6 +230,8 @@ def MegaLoc():
 
     # Imposta il modello in modalità valutazione (inference)
     model.eval()
+
+    return model
 
 class MLP(nn.Module):
     def __init__(self, input_dim=512, hidden_dim=64):
