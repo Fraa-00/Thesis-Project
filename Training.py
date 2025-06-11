@@ -35,10 +35,10 @@ def train_loop(
     # Optional second encoder
     if use_second_encoder == 'dino':
         second_encoder = DinoV2()
-        input_dim = 512
+        input_dim = 1792  # 1792 = 512 (Marepo) + 1280 (DinoV2)
     elif use_second_encoder == 'megaloc':
         second_encoder = MegaLoc()
-        input_dim = 8960  # 8960 = 512 (DinoV2) + 8448 (MegaLoc)
+        input_dim = 8960  # 8960 = 512 (Marepo) + 8448 (MegaLoc)
     else:
         second_encoder = None
         input_dim = 512
@@ -69,7 +69,6 @@ def train_loop(
             # Second encoder features (if any)
             if second_encoder:
                 feat2 = second_encoder(imgs)
-                print(feat2.shape)
                 feats = torch.cat([feat1_flat, feat2], dim=1)
             else:
                 feats = feat1_flat
