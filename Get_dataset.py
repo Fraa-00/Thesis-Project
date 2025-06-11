@@ -124,7 +124,7 @@ class get_dataset(Dataset):
         return image, ground_truth_tensor
 
 rgb_transforms = transforms.Compose([
-    transforms.Resize((256, 256)), # Ridimensiona l'immagine a una dimensione uniforme
+    transforms.Resize((252, 252)), # Ridimensiona l'immagine a una dimensione uniforme
     transforms.ToTensor(),         # Converte l'immagine PIL in un tensor PyTorch [C, H, W] e scala a [0.0, 1.0]
     # Normalizzazione con media e deviazione standard di ImageNet
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
