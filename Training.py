@@ -38,7 +38,7 @@ def train_loop(
         input_dim = 512
     elif use_second_encoder == 'megaloc':
         second_encoder = MegaLoc()
-        input_dim = 512
+        input_dim = 8960  # 8960 = 512 (DinoV2) + 8448 (MegaLoc)
     else:
         second_encoder = None
         input_dim = 512
@@ -70,9 +70,7 @@ def train_loop(
             if second_encoder:
                 feat2 = second_encoder(imgs)
                 print(feat2.shape)
-                # feat2_flat = feat2.flatten(2).permute(0, 2, 1)
-                feat2_flat = torch.max(feat2_flat, dim=1)[0]  # (B, C)
-                feats = torch.cat([feat1_flat, feat2_flat], dim=1)
+                feats = torch.cat([feat1_flat, feat2], dim=1)
             else:
                 feats = feat1_flat
         
