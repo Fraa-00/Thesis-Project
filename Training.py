@@ -64,11 +64,11 @@ def train_loop(
             imgs, targets = batch  # imgs: (B, 3, H, W), targets: (B, N, 3)
             imgs = imgs.to(device)
             targets = targets.to(device)
-
+            feat1_flat = first_encoder(imgs)
             # Main encoder features
-            feat1 = first_encoder.get_features(TF.rgb_to_grayscale(imgs))
+            '''feat1 = first_encoder.get_features(TF.rgb_to_grayscale(imgs))
             feat1_flat = feat1.flatten(2).permute(0, 2, 1)  # (B, N, C)
-            feat1_flat = torch.max(feat1_flat, dim=1)[0]  # (B, C)
+            feat1_flat = torch.max(feat1_flat, dim=1)[0]'''  # (B, C)
 
             # Second encoder features (if any)
             if second_encoder:
