@@ -63,7 +63,7 @@ def train_loop(
             else:
                 feats = feat1_flat
         
-            
+            print(feats.shape)  # Debugging line to check shapes
             # MLP regression
             preds = mlp(feats)  # (B, 3)
             loss = loss_fn(preds, targets)
