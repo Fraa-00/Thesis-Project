@@ -31,7 +31,7 @@ def train_loop(
     patience=3
 ):
     # Main encoder
-    marepo = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device)
+    first_encoder = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device)
     # Optional second encoder
     if use_second_encoder == 'dino':
         second_encoder = DinoV2()
@@ -47,13 +47,13 @@ def train_loop(
 
     mlp = MLP(input_dim=input_dim).to(device)
 
-    optimizer = Adam(list(marepo.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
+    optimizer = Adam(list(first_encoder.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
     loss_fn = my_loss()
     best_val_loss = float('inf')
     bad_epochs = 0
 
     for epoch in range(epochs):
-        marepo.train()
+        first_encoder.train()
         if second_encoder:
             second_encoder.train()
         mlp.train()
@@ -64,7 +64,7 @@ def train_loop(
             targets = targets.to(device)
 
             # Main encoder features
-            feat1 = marepo.get_features(TF.rgb_to_grayscale(imgs))
+            feat1 = first_encoder.get_features(TF.rgb_to_grayscale(imgs))
             feat1_flat = feat1.flatten(2).permute(0, 2, 1)  # (B, N, C)
             feat1_flat = torch.max(feat1_flat, dim=1)[0]  # (B, C)
 
@@ -86,13 +86,13 @@ def train_loop(
             running_loss += loss.item()
 
         avg_train_loss = running_loss / len(train_dataloader)
-        avg_val_loss = evaluation_loop(marepo, mlp, second_encoder, val_dataloader, loss_fn, device)
+        avg_val_loss = evaluation_loop(first_encoder, mlp, second_encoder, val_dataloader, loss_fn, device)
         print(f"Epoch {epoch}/{epochs} - Train Loss: {avg_train_loss:.4f} - Val Loss: {avg_val_loss:.4f}")
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             bad_epochs = 0
             torch.save({
-                'marepo': marepo.state_dict(),
+                'first_encoder': first_encoder.state_dict(),
                 'mlp': mlp.state_dict(),
                 **({'second': second_encoder.state_dict()} if second_encoder else {})
             }, 'best_model.pth')
@@ -103,4 +103,4 @@ def train_loop(
                 break
 
     print("Training completato.")
-    visualize_predictions(marepo, mlp, second_encoder, val_dataloader, device, num_samples=5)
+    visualize_predictions(first_encoder, mlp, second_encoder, val_dataloader, device, num_samples=5)
