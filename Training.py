@@ -43,7 +43,7 @@ def train_loop(
         second_encoder = None
         input_dim = 512
 
-    mlp = MLP(input_dim=2*input_dim).to(device)
+    mlp = MLP(input_dim=input_dim).to(device)
 
     optimizer = Adam(list(marepo.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
     loss_fn = my_loss()
