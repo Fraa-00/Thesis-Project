@@ -25,30 +25,51 @@ def train_loop(
     mean = 0,
     num_head_blocks=1,
     use_homogeneous=True,
-    use_second_encoder=None,  # 'dino' or 'megaloc' or None
+    use_second_encoder=None,
     epochs=10,
     device='cuda',
     patience=3
 ):
+    # Move device selection to start
+    if device == 'cuda' and not torch.cuda.is_available():
+        print("CUDA not available, using CPU instead")
+        device = 'cpu'
+    
+    device = torch.device(device)
+    
     # Main encoder
     first_encoder = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device)
-    # first_encoder = DinoV2()
-    # first_encoder = MegaLoc()
+    
     # Optional second encoder
     if use_second_encoder == 'dino':
-        second_encoder = DinoV2()
-        second_encoder = second_encoder.to(device)
-        input_dim = 1280  # 1792 = 512 (Marepo) + 768 (DinoV2)
+        second_encoder = DinoV2().to(device)
+        input_dim = 1280
     elif use_second_encoder == 'megaloc':
-        second_encoder = MegaLoc()
-        second_encoder = second_encoder.to(device)
-        input_dim = 8960  # 8960 = 512 (Marepo) + 8448 (MegaLoc)
+        second_encoder = MegaLoc().to(device)
+        input_dim = 8960
     else:
         second_encoder = None
         input_dim = 512
 
-    mlp = MLP(input_dim=input_dim).to(device)
-
+    mlp = MLP(input_dim=input_dim, device=device)
+    
+    # Prefetch next batch while GPU is working
+    train_dataloader = DataLoader(
+        train_dataloader.dataset,
+        batch_size=train_dataloader.batch_size,
+        shuffle=True,
+        num_workers=2,
+        pin_memory=True if device == 'cuda' else False
+    )
+    
+    val_dataloader = DataLoader(
+        val_dataloader.dataset,
+        batch_size=val_dataloader.batch_size,
+        shuffle=False,
+        num_workers=2,
+        pin_memory=True if device == 'cuda' else False
+    )
+    
     optimizer = Adam(list(first_encoder.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
     loss_fn = my_loss()
     best_val_loss = float('inf')
@@ -61,25 +82,25 @@ def train_loop(
         mlp.train()
         running_loss = 0.0
         for batch in train_dataloader:
-            imgs, targets = batch  # imgs: (B, 3, H, W), targets: (B, N, 3)
+            imgs, targets = batch  # imgs: (B, 3, H, W), targets: (B, 3)
             imgs = imgs.to(device)
             targets = targets.to(device)
-            feat1_flat = first_encoder(imgs)
             # Main encoder features
-            '''feat1 = first_encoder.get_features(TF.rgb_to_grayscale(imgs))
+            feat1 = first_encoder.get_features(TF.rgb_to_grayscale(imgs))
             feat1_flat = feat1.flatten(2).permute(0, 2, 1)  # (B, N, C)
-            feat1_flat = torch.max(feat1_flat, dim=1)[0]'''  # (B, C)
+            feat1_flat = torch.max(feat1_flat, dim=1)[0]  # (B, C)
 
             # Second encoder features (if any)
             if second_encoder:
-                feat2 = second_encoder(imgs)
-                feats = torch.cat([feat1_flat, feat2], dim=1)
+                with torch.no_grad():  
+                    feat2 = second_encoder(imgs)  # Already (B, C)
+                feats = torch.cat([feat1_flat, feat2], dim=-1)
             else:
                 feats = feat1_flat
-        
-            # MLP regression
+            
+            # MLP regression directly on feats (already pooled)
             preds = mlp(feats)  # (B, 3)
-            loss = loss_fn(preds, targets)
+            loss = loss_fn(preds, targets)  # Now both are (B, 3)
 
             optimizer.zero_grad()
             loss.backward()

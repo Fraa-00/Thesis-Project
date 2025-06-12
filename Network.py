@@ -219,14 +219,17 @@ def MegaLoc():
     return model
 
 class MLP(nn.Module):
-    def __init__(self, input_dim=512, hidden_dim=64):
+    def __init__(self, input_dim=512, hidden_dim=64, device=None):
         super().__init__()
+        if device is None:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device
         self.net = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 3)  # Regression output
-        )
-        self.to("cuda" if torch.cuda.is_available() else "cpu")
+        ).to(device)
 
     def forward(self, x):
+        x = x.to(self.device)
         return self.net(x)
