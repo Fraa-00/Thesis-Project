@@ -1,12 +1,12 @@
 import torch
 import torchvision.transforms.functional as TF
 
-def visualize_predictions(model, mlp, second_encoder, val_loader, device, num_samples=5):
+def visualize_predictions(first_encoder, mlp, second_encoder, val_loader, device, num_samples=5):
     """
     Visualizza alcune predizioni con ground truth e immagini corrispondenti.
     
     Args:
-        model: Modello principale (Marepo)
+        first_encoder: Modello principale (Marepo)
         mlp: MLP per la regressione finale
         second_encoder: Encoder secondario opzionale (DinoV2 o MegaLoc)
         val_loader: DataLoader per il validation set
@@ -15,7 +15,8 @@ def visualize_predictions(model, mlp, second_encoder, val_loader, device, num_sa
     """
     import matplotlib.pyplot as plt
     
-    model.eval()
+    if first_encoder:
+        first_encoder.eval()
     if second_encoder:
         second_encoder.eval()
     mlp.eval()
@@ -25,15 +26,21 @@ def visualize_predictions(model, mlp, second_encoder, val_loader, device, num_sa
     imgs, targets = imgs.to(device), targets.to(device)
     
     with torch.no_grad():
-        # Calcola le predizioni
-        feat1 = model.get_features(TF.rgb_to_grayscale(imgs))
-        feat1_flat = feat1.flatten(2).permute(0, 2, 1)
-        feat1_flat = torch.max(feat1_flat, dim=1)[0]  # (B, C)
+        if first_encoder:
+            # Calcola le predizioni
+            feat1 = first_encoder.get_features(TF.rgb_to_grayscale(imgs))
+            feat1_flat = feat1.flatten(2).permute(0, 2, 1)
+            feat1_flat = torch.max(feat1_flat, dim=1)[0]  # (B, C)
+        
         if second_encoder:
             feat2 = second_encoder(imgs)  # Already (B, C)
+        
+        if first_encoder and second_encoder:
             feats = torch.cat([feat1_flat, feat2], dim=-1)
-        else:
+        elif first_encoder:
             feats = feat1_flat
+        else:
+            feats = feat2
 
         preds = mlp(feats)
 

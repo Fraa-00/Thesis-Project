@@ -6,8 +6,9 @@ from Get_dataset import rgb_transforms
 import torchvision.transforms.functional as TF
 from My_Loss import my_loss
 
-def evaluation_loop(model, mlp, second_encoder, val_loader, loss_fn, device):
-    model.eval()
+def evaluation_loop(first_encoder, mlp, second_encoder, val_loader, loss_fn, device):
+    if first_encoder:
+        first_encoder.eval()
     if second_encoder:
         second_encoder.eval()
     mlp.eval()
@@ -16,16 +17,23 @@ def evaluation_loop(model, mlp, second_encoder, val_loader, loss_fn, device):
     with torch.no_grad():
         for imgs, targets in val_loader:
             imgs, targets = imgs.to(device), targets.to(device)
-            feat1 = model.get_features(TF.rgb_to_grayscale(imgs))
-            feat1_flat = feat1.flatten(2).permute(0, 2, 1)
-            feat1_flat = torch.max(feat1_flat, dim=1)[0]  # (B, C)
-            if second_encoder:
-                feat2 = second_encoder(imgs)  # Already (B, C)
-                feats = torch.cat([feat1_flat, feat2], dim=-1)
-            else:
-                feats = feat1_flat
             
-            preds = mlp(feats)  # Use feats directly
+            if first_encoder:
+                feat1 = first_encoder.get_features(TF.rgb_to_grayscale(imgs))
+                feat1_flat = feat1.flatten(2).permute(0, 2, 1)
+                feat1_flat = torch.max(feat1_flat, dim=1)[0]
+            
+            if second_encoder:
+                feat2 = second_encoder(imgs)
+            
+            if first_encoder and second_encoder:
+                feats = torch.cat([feat1_flat, feat2], dim=-1)
+            elif first_encoder:
+                feats = feat1_flat
+            else:
+                feats = feat2
+            
+            preds = mlp(feats)
             loss_val_batch = loss_fn(preds, targets)
             batch_loss = loss_val_batch.mean().item() if loss_val_batch.dim() > 0 else loss_val_batch.item()
             val_running += batch_loss

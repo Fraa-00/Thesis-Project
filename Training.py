@@ -26,81 +26,85 @@ def train_loop(
     num_head_blocks=1,
     use_homogeneous=True,
     use_second_encoder=None,
+    use_first_encoder=True,  # New parameter
     epochs=10,
     device='cuda',
     patience=3
 ):
-    # Move device selection to start
     if device == 'cuda' and not torch.cuda.is_available():
         print("CUDA not available, using CPU instead")
         device = 'cpu'
     
     device = torch.device(device)
     
-    # Main encoder
-    first_encoder = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device)
+    # Main encoder (optional now)
+    first_encoder = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device) if use_first_encoder else None
     
-    # Optional second encoder
+    # Second encoder setup
     if use_second_encoder == 'dino':
         second_encoder = DinoV2().to(device)
-        input_dim = 1280
+        input_dim = 768  # DinoV2 output dimension
     elif use_second_encoder == 'megaloc':
         second_encoder = MegaLoc().to(device)
-        input_dim = 8960
+        input_dim = 8448  # MegaLoc output dimension
     else:
         second_encoder = None
         input_dim = 512
 
+    # Adjust input dimension based on which encoders are used
+    if use_first_encoder and second_encoder:
+        input_dim = 512 + input_dim  # Combined features
+    elif use_first_encoder:
+        input_dim = 512  # Only first encoder
+    # else keep input_dim as is (only second encoder)
+
     mlp = MLP(input_dim=input_dim, device=device)
     
-    # Prefetch next batch while GPU is working
-    train_dataloader = DataLoader(
-        train_dataloader.dataset,
-        batch_size=train_dataloader.batch_size,
-        shuffle=True,
-        num_workers=2,
-        pin_memory=True if device == 'cuda' else False
-    )
+    # Update optimizer parameters based on which encoders are used
+    optimizer_params = []
+    if use_first_encoder:
+        optimizer_params.extend(first_encoder.parameters())
+    if second_encoder:
+        optimizer_params.extend(second_encoder.parameters())
+    optimizer_params.extend(mlp.parameters())
     
-    val_dataloader = DataLoader(
-        val_dataloader.dataset,
-        batch_size=val_dataloader.batch_size,
-        shuffle=False,
-        num_workers=2,
-        pin_memory=True if device == 'cuda' else False
-    )
-    
-    optimizer = Adam(list(first_encoder.parameters()) + list(mlp.parameters()) + (list(second_encoder.parameters()) if second_encoder else []))
+    optimizer = Adam(optimizer_params)
     loss_fn = my_loss()
     best_val_loss = float('inf')
     bad_epochs = 0
 
     for epoch in range(epochs):
-        first_encoder.train()
+        if first_encoder:
+            first_encoder.train()
         if second_encoder:
             second_encoder.train()
         mlp.train()
         running_loss = 0.0
+
         for batch in train_dataloader:
-            imgs, targets = batch  # imgs: (B, 3, H, W), targets: (B, 3)
+            imgs, targets = batch
             imgs = imgs.to(device)
             targets = targets.to(device)
-            # Main encoder features
-            feat1 = first_encoder.get_features(TF.rgb_to_grayscale(imgs))
-            feat1_flat = feat1.flatten(2).permute(0, 2, 1)  # (B, N, C)
-            feat1_flat = torch.max(feat1_flat, dim=1)[0]  # (B, C)
 
-            # Second encoder features (if any)
-            if second_encoder:
-                with torch.no_grad():  
-                    feat2 = second_encoder(imgs)  # Already (B, C)
-                feats = torch.cat([feat1_flat, feat2], dim=-1)
-            else:
-                feats = feat1_flat
+            # Get features based on which encoders are used
+            if use_first_encoder:
+                feat1 = first_encoder.get_features(TF.rgb_to_grayscale(imgs))
+                feat1_flat = feat1.flatten(2).permute(0, 2, 1)
+                feat1_flat = torch.max(feat1_flat, dim=1)[0]
             
-            # MLP regression directly on feats (already pooled)
-            preds = mlp(feats)  # (B, 3)
-            loss = loss_fn(preds, targets)  # Now both are (B, 3)
+            if second_encoder:
+                feat2 = second_encoder(imgs)
+            
+            # Combine features or use single encoder features
+            if use_first_encoder and second_encoder:
+                feats = torch.cat([feat1_flat, feat2], dim=-1)
+            elif use_first_encoder:
+                feats = feat1_flat
+            else:
+                feats = feat2
+            
+            preds = mlp(feats)
+            loss = loss_fn(preds, targets)
 
             optimizer.zero_grad()
             loss.backward()
