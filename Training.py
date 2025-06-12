@@ -9,6 +9,7 @@ import torchvision.transforms.functional as TF
 from My_Loss import my_loss
 from Eval import evaluation_loop
 from Utils import visualize_predictions
+import os
 
 # Set seeds for reproducibility
 SEED = 42
@@ -119,7 +120,7 @@ def train_loop(
             best_val_loss = avg_val_loss
             bad_epochs = 0
             torch.save({
-                'first_encoder': first_encoder.state_dict(),
+                **({'first_encoder': first_encoder.state_dict()} if first_encoder else {}),
                 'mlp': mlp.state_dict(),
                 **({'second': second_encoder.state_dict()} if second_encoder else {})
             }, 'best_model.pth')
@@ -130,4 +131,7 @@ def train_loop(
                 break
 
     print("Training completato.")
-    visualize_predictions(first_encoder, mlp, second_encoder, val_dataloader, device, num_samples=5, save_path='/kaggle/working/predictions.png')  # Kaggle's output directory
+    save_dir = '/kaggle/working'
+    save_path = os.path.join(save_dir, 'predictions.png')
+    os.makedirs(save_dir, exist_ok=True)
+    visualize_predictions(first_encoder, mlp, second_encoder, val_dataloader, device, num_samples=5, save_path=save_path)

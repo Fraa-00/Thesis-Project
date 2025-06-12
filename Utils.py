@@ -71,8 +71,10 @@ def visualize_predictions(first_encoder, mlp, second_encoder, val_loader, device
     plt.tight_layout()
     
     # Save the figure instead of showing it
-    plt.savefig(save_path)
-    plt.close()  # Close the figure to free memory
-    
-    # Print message about where the plot was saved
-    print(f"Predictions visualization saved to {save_path}")
+    try:
+        plt.savefig(save_path)
+        print(f"Predictions visualization saved to {save_path}")
+    except Exception as e:
+        print(f"Error saving predictions visualization: {str(e)}")
+    finally:
+        plt.close()  # Always close the figure to free memory
