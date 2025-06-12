@@ -130,4 +130,4 @@ def train_loop(
                 break
 
     print("Training completato.")
-    visualize_predictions(first_encoder, mlp, second_encoder, val_dataloader, device, num_samples=5)
+    visualize_predictions(first_encoder, mlp, second_encoder, val_dataloader, device, num_samples=5, save_path='/kaggle/working/predictions.png')  # Kaggle's output directory

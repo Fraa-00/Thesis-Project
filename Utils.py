@@ -1,9 +1,9 @@
 import torch
 import torchvision.transforms.functional as TF
 
-def visualize_predictions(first_encoder, mlp, second_encoder, val_loader, device, num_samples=5):
+def visualize_predictions(first_encoder, mlp, second_encoder, val_loader, device, num_samples=5, save_path='predictions.png'):
     """
-    Visualizza alcune predizioni con ground truth e immagini corrispondenti.
+    Visualizza alcune predizioni con ground truth e immagini corrispondenti e salva il risultato.
     
     Args:
         first_encoder: Modello principale (Marepo)
@@ -12,6 +12,7 @@ def visualize_predictions(first_encoder, mlp, second_encoder, val_loader, device
         val_loader: DataLoader per il validation set
         device: Device su cui eseguire le predizioni
         num_samples: Numero di campioni da visualizzare
+        save_path: Percorso dove salvare l'immagine risultante
     """
     import matplotlib.pyplot as plt
     
@@ -50,18 +51,15 @@ def visualize_predictions(first_encoder, mlp, second_encoder, val_loader, device
     if num_samples == 1:
         axes = [axes]
 
-    # Denormalizza le immagini (sposta i tensori su GPU)
+    # Denormalizza le immagini
     mean = torch.tensor([0.485, 0.456, 0.406]).view(3,1,1).to(device)
     std = torch.tensor([0.229, 0.224, 0.225]).view(3,1,1).to(device)
     imgs_denorm = imgs * std + mean
     
-    # Sposta su CPU solo quando necessario per visualizzazione
     for i in range(num_samples):
-        # Visualizza l'immagine
         img = imgs_denorm[i].cpu().permute(1,2,0)
         axes[i].imshow(img.clamp(0,1))
         
-        # Stampa predizioni e ground truth
         pred = preds[i].cpu().numpy()
         target = targets[i].cpu().numpy()
         
@@ -71,4 +69,10 @@ def visualize_predictions(first_encoder, mlp, second_encoder, val_loader, device
         axes[i].axis('off')
 
     plt.tight_layout()
-    plt.show()
+    
+    # Save the figure instead of showing it
+    plt.savefig(save_path)
+    plt.close()  # Close the figure to free memory
+    
+    # Print message about where the plot was saved
+    print(f"Predictions visualization saved to {save_path}")
