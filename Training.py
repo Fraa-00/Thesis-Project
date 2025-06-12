@@ -131,7 +131,8 @@ def train_loop(
                 break
 
     print("Training completato.")
-    save_dir = '/kaggle/working'
-    save_path = os.path.join(save_dir, 'predictions.png')
-    os.makedirs(save_dir, exist_ok=True)
-    visualize_predictions(first_encoder, mlp, second_encoder, val_dataloader, device, num_samples=5, save_path=save_path)
+
+    # Visualize predictions on a few validation samples
+    visualize_predictions(
+        first_encoder, mlp, second_encoder, val_dataloader, device, num_samples=5
+    )
