@@ -50,7 +50,7 @@ if __name__ == "__main__":
         train_dataloader=train_dataloader,
         val_dataloader=val_dataloader,
         use_second_encoder='dino',
-        use_first_encoder=False
+        use_first_encoder=False,
         epochs=1,
         device=device
     )
