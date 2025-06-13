@@ -1,7 +1,6 @@
 import torch
 import torchvision.transforms.functional as TF
 from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
-from Transformer.transformer import Transformer_Head
 
 class VPR_Regressor(torch.nn.Module):
     def __init__(
@@ -20,7 +19,7 @@ class VPR_Regressor(torch.nn.Module):
         self.use_first_encoder = use_first_encoder
         self.use_pose = use_pose 
         self.config = config
-        self.transformer_head = Transformer_Head(config)
+        # self.transformer_head = Transformer_Head(config)
 
         if config is None:
             config = {}

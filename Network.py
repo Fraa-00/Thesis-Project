@@ -2,7 +2,6 @@
 import logging
 import math
 import re
-from Transformer.transformer import Transformer_Head
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -169,7 +168,7 @@ class Marepo_Regressor(nn.Module):
         self.encoder = AceEncoder(out_channels=self.feature_dim)
         self.heads = MarepoHead(mean, num_head_blocks, use_homogeneous, in_channels=self.feature_dim)
         self.config=config
-        self.transformer_head = Transformer_Head(config)
+        # self.transformer_head = Transformer_Head(config)
 
     @classmethod
     def create_from_encoder(cls, encoder_state_dict, mean, num_head_blocks, use_homogeneous):
