@@ -10,6 +10,7 @@ from My_Loss import my_loss
 from Eval import evaluation_loop
 from Utils import visualize_predictions
 import os
+from VPR_Regressor import VPR_Regressor
 
 # Set seeds for reproducibility
 SEED = 42
@@ -38,48 +39,22 @@ def train_loop(
     
     device = torch.device(device)
     
-    # Main encoder (optional now)
-    first_encoder = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(device) if use_first_encoder else None
-    
-    # Second encoder setup
-    if use_second_encoder == 'dino':
-        second_encoder = DinoV2().to(device)
-        input_dim = 768  # DinoV2 output dimension
-    elif use_second_encoder == 'megaloc':
-        second_encoder = MegaLoc().to(device)
-        input_dim = 8448  # MegaLoc output dimension
-    else:
-        second_encoder = None
-        input_dim = 512
+    model = VPR_Regressor(
+        mean=mean,
+        num_head_blocks=num_head_blocks,
+        use_homogeneous=use_homogeneous,
+        use_second_encoder=use_second_encoder,
+        use_first_encoder=use_first_encoder,
+        device=device
+    ).to(device)
 
-    # Adjust input dimension based on which encoders are used
-    if use_first_encoder and second_encoder:
-        input_dim = 512 + input_dim  # Combined features
-    elif use_first_encoder:
-        input_dim = 512  # Only first encoder
-    # else keep input_dim as is (only second encoder)
-
-    mlp = MLP(input_dim=input_dim, device=device)
-    
-    # Update optimizer parameters based on which encoders are used
-    optimizer_params = []
-    if use_first_encoder:
-        optimizer_params.extend(first_encoder.parameters())
-    if second_encoder:
-        optimizer_params.extend(second_encoder.parameters())
-    optimizer_params.extend(mlp.parameters())
-    
-    optimizer = Adam(optimizer_params)
+    optimizer = Adam(model.get_trainable_parameters())
     loss_fn = my_loss()
     best_val_loss = float('inf')
     bad_epochs = 0
 
     for epoch in range(epochs):
-        if first_encoder:
-            first_encoder.train()
-        if second_encoder:
-            second_encoder.train()
-        mlp.train()
+        model.train()
         running_loss = 0.0
 
         for batch in train_dataloader:
@@ -87,24 +62,7 @@ def train_loop(
             imgs = imgs.to(device)
             targets = targets.to(device)
 
-            # Get features based on which encoders are used
-            if use_first_encoder:
-                feat1 = first_encoder.get_features(TF.rgb_to_grayscale(imgs))
-                feat1_flat = feat1.flatten(2).permute(0, 2, 1)
-                feat1_flat = torch.max(feat1_flat, dim=1)[0]
-            
-            if second_encoder:
-                feat2 = second_encoder(imgs)
-            
-            # Combine features or use single encoder features
-            if use_first_encoder and second_encoder:
-                feats = torch.cat([feat1_flat, feat2], dim=-1)
-            elif use_first_encoder:
-                feats = feat1_flat
-            else:
-                feats = feat2
-            
-            preds = mlp(feats)
+            preds = model(imgs)
             loss = loss_fn(preds, targets)
 
             optimizer.zero_grad()
@@ -114,16 +72,12 @@ def train_loop(
             running_loss += loss.item()
 
         avg_train_loss = running_loss / len(train_dataloader)
-        avg_val_loss = evaluation_loop(first_encoder, mlp, second_encoder, val_dataloader, loss_fn, device)
+        avg_val_loss = evaluation_loop(model, val_dataloader, loss_fn, device)  # <-- Cambiato qui
         print(f"Epoch {epoch}/{epochs} - Train Loss: {avg_train_loss:.4f} - Val Loss: {avg_val_loss:.4f}")
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             bad_epochs = 0
-            torch.save({
-                **({'first_encoder': first_encoder.state_dict()} if first_encoder else {}),
-                'mlp': mlp.state_dict(),
-                **({'second': second_encoder.state_dict()} if second_encoder else {})
-            }, 'best_model.pth')
+            torch.save(model.state_dict(), 'best_model.pth')  # <-- Cambiato qui
         else:
             bad_epochs += 1
             if bad_epochs >= patience:
@@ -132,7 +86,5 @@ def train_loop(
 
     print("Training completato.")
 
-    # Visualize predictions on a few validation samples
-    visualize_predictions(
-        first_encoder, mlp, second_encoder, val_dataloader, device, num_samples=5
-    )
+    # Visualizza le predizioni su alcuni sample di validazione
+    visualize_predictions(model, val_dataloader, device, num_samples=5)  # <-- Cambiato qui

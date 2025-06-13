@@ -55,5 +55,22 @@ if __name__ == "__main__":
         device=device
     )
 
+    # # Ricrea il modello con gli stessi parametri usati nel training
+    # model = VPR_Regressor(
+    #     mean=0,
+    #     num_head_blocks=1,
+    #     use_homogeneous=True,
+    #     use_second_encoder='dino',  # o quello che hai usato
+    #     use_first_encoder=True,     # o False, a seconda del training
+    #     device=device
+    # ).to(device)
+
+    # # Carica i pesi salvati
+    # model.load_state_dict(torch.load('best_model.pth', map_location=device))
+
+# Valuta il modello caricato
+val_loss = evaluation_loop(model, val_dataloader, my_loss(), device)
+print(f"Validation loss del modello caricato: {val_loss:.4f}")
+
 
 

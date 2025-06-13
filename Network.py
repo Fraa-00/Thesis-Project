@@ -2,7 +2,7 @@
 import logging
 import math
 import re
-
+from Transformer.transformer import Transformer_Head
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -145,7 +145,6 @@ class MarepoHead(nn.Module):
 
         return sc
     
-
 class Marepo_Regressor(nn.Module):
     """
     FCN architecture for scene coordinate regression.
@@ -170,7 +169,7 @@ class Marepo_Regressor(nn.Module):
         self.encoder = AceEncoder(out_channels=self.feature_dim)
         self.heads = MarepoHead(mean, num_head_blocks, use_homogeneous, in_channels=self.feature_dim)
         self.config=config
-        # self.transformer_head = Transformer_Head(config)
+        self.transformer_head = Transformer_Head(config)
 
     @classmethod
     def create_from_encoder(cls, encoder_state_dict, mean, num_head_blocks, use_homogeneous):
@@ -202,8 +201,8 @@ class Marepo_Regressor(nn.Module):
     def get_scene_coordinates(self, features):
         return self.heads(features)
 
-'''    def get_pose(self, sc, intrinsics_B33=None, sc_mask=None, random_rescale_sc=False):
-        return self.transformer_head(sc, intrinsics_B33, sc_mask, random_rescale_sc)'''
+    def get_pose(self, sc, intrinsics_B33=None, sc_mask=None, random_rescale_sc=False):
+        return self.transformer_head(sc, intrinsics_B33, sc_mask, random_rescale_sc)
 
 def DinoV2():
     model_type = "dinov2_vitb14"
