@@ -10,11 +10,13 @@ class VPR_Regressor(torch.nn.Module):
         use_homogeneous=True,
         use_second_encoder=None,
         use_first_encoder=True,
-        device='cuda'
+        device='cuda',
+        use_pose=False 
     ):
         super().__init__()
         self.device = torch.device(device)
         self.use_first_encoder = use_first_encoder
+        self.use_pose = use_pose  # <--- salva la scelta
 
         # Main encoder
         if use_first_encoder:
@@ -35,9 +37,9 @@ class VPR_Regressor(torch.nn.Module):
 
         # Input dimension for MLP
         if use_first_encoder and self.second_encoder:
-            input_dim = 512 + second_dim
+            input_dim = (6 if use_pose else 512) + second_dim
         elif use_first_encoder:
-            input_dim = 512
+            input_dim = 6 if use_pose else 512
         else:
             input_dim = second_dim
 
@@ -46,9 +48,15 @@ class VPR_Regressor(torch.nn.Module):
     def forward(self, imgs):
         feats = []
         if self.use_first_encoder:
-            feat1 = self.first_encoder.get_features(TF.rgb_to_grayscale(imgs))
-            feat1_flat = feat1.flatten(2).permute(0, 2, 1)
-            feat1_flat = torch.max(feat1_flat, dim=1)[0]
+            features = self.first_encoder.get_features(TF.rgb_to_grayscale(imgs))
+            if self.use_pose:
+                # Ottieni vettore 6D (batch, 6)
+                pose = self.first_encoder.get_pose(features)
+                feat1_flat = pose if pose.dim() == 2 else pose.view(pose.size(0), -1)
+            else:
+                # Ottieni feature map (batch, 512, H, W) -> pooling -> (batch, 512)
+                feat1_flat = features.flatten(2).permute(0, 2, 1)
+                feat1_flat = torch.max(feat1_flat, dim=1)[0]
             feats.append(feat1_flat)
         if self.second_encoder:
             feat2 = self.second_encoder(imgs)

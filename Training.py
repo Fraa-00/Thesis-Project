@@ -28,7 +28,8 @@ def train_loop(
     num_head_blocks=1,
     use_homogeneous=True,
     use_second_encoder=None,
-    use_first_encoder=True,  # New parameter
+    use_first_encoder=True,
+    use_pose=True,
     epochs=10,
     device='cuda',
     patience=3
@@ -45,7 +46,8 @@ def train_loop(
         use_homogeneous=use_homogeneous,
         use_second_encoder=use_second_encoder,
         use_first_encoder=use_first_encoder,
-        device=device
+        device=device,
+        use_pose=True,
     ).to(device)
 
     optimizer = Adam(model.get_trainable_parameters())
