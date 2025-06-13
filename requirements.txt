@@ -4,3 +4,6 @@ Pillow
 matplotlib
 xformers
 numpy
+einops
+pytorch3d
+flash
