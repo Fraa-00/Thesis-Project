@@ -36,7 +36,7 @@ class PositionEncodingSine(nn.Module):
 
         d_model = config["d_model"]
         self.in_ch_dim = in_ch_dim
-        self.default_img_HW = config[252,252] # ex: [480,640]
+        self.default_img_HW = [252,252] # ex: [480,640]
 
         # Raise input scene coordinate dimensions if necessary
         self.sc_pe=sc_pe
