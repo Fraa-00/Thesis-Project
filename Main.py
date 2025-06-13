@@ -52,7 +52,6 @@ if __name__ == "__main__":
         val_dataloader=val_dataloader,
         use_second_encoder='dino',
         use_first_encoder=True,
-        use_pose=False,
         epochs=1,
         device=device,
     )
