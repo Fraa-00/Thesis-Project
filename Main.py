@@ -45,8 +45,6 @@ if __name__ == "__main__":
         pin_memory=True if device == "cuda" else False
     )
 
-    # Path relativo compatibile con Kaggle/GitHub
-    config_path = "Transformer/config/nerf_focal_12T1R_256_homo.json"
 
     # Run training loop
     train_loop(
@@ -57,7 +55,6 @@ if __name__ == "__main__":
         use_pose=False,
         epochs=1,
         device=device,
-        config_path=config_path
     )
 
     # # Ricrea il modello con gli stessi parametri usati nel training
