@@ -154,7 +154,7 @@ class Marepo_Regressor(nn.Module):
 
     OUTPUT_SUBSAMPLE = 8
 
-    def __init__(self, mean = 0, num_head_blocks = 1, use_homogeneous = True, num_encoder_features=512, config={}):
+    def __init__(self, mean = torch.zeros(1, 3, 1, 1), num_head_blocks = 1, use_homogeneous = True, num_encoder_features=512, config={}):
         """
         Constructor.
 

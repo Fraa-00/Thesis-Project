@@ -24,7 +24,7 @@ torch.backends.cudnn.benchmark = False
 def train_loop(
     train_dataloader: DataLoader,
     val_dataloader: DataLoader,
-    mean = 0,
+    mean = torch.zeros(1, 3, 1, 1),
     num_head_blocks=1,
     use_homogeneous=True,
     use_second_encoder=None,
