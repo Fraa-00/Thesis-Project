@@ -28,22 +28,13 @@ def visualize_predictions(first_encoder, mlp, second_encoder, dataloader, device
                 feats = feat2
 
             preds = mlp(feats).cpu().numpy()
-            imgs_np = imgs.cpu().permute(0,2,3,1).numpy()
             targets_np = targets.cpu().numpy()
 
-            for i in range(imgs_np.shape[0]):
+            for i in range(preds.shape[0]):
                 if shown >= num_samples:
                     return
-                img = imgs_np[i]
-                # Undo normalization for visualization
-                img = img * [0.229, 0.224, 0.225] + [0.485, 0.456, 0.406]
-                img = img.clip(0, 1)
-                plt.figure(figsize=(4,4))
-                plt.imshow(img)
-                plt.axis('off')
-                plt.title(
-                    f"Pred: lat={preds[i][0]:.5f}, lon={preds[i][1]:.5f}, θ={preds[i][2]:.2f}\n"
-                    f"GT:   lat={targets_np[i][0]:.5f}, lon={targets_np[i][1]:.5f}, θ={targets_np[i][2]:.2f}"
-                )
-                plt.show()
+                print(f"Sample {shown+1}:")
+                print(f"  Prediction: lat={preds[i][0]:.5f}, lon={preds[i][1]:.5f}, θ={preds[i][2]:.2f}")
+                print(f"  Ground Truth: lat={targets_np[i][0]:.5f}, lon={targets_np[i][1]:.5f}, θ={targets_np[i][2]:.2f}")
+                print("-" * 40)
                 shown += 1
