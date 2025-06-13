@@ -69,9 +69,9 @@ if __name__ == "__main__":
     # # Carica i pesi salvati
     # model.load_state_dict(torch.load('best_model.pth', map_location=device))
 
-# Valuta il modello caricato
-val_loss = evaluation_loop(model, val_dataloader, my_loss(), device)
-print(f"Validation loss del modello caricato: {val_loss:.4f}")
+    # # Valuta il modello caricato
+    # val_loss = evaluation_loop(model, val_dataloader, my_loss(), device)
+    # print(f"Validation loss del modello caricato: {val_loss:.4f}")
 
 
 
