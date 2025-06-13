@@ -1,6 +1,7 @@
 import torch
 import torchvision.transforms.functional as TF
 from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
+from Transformer.transformer import Transformer_Head
 
 class VPR_Regressor(torch.nn.Module):
     def __init__(
@@ -11,16 +12,22 @@ class VPR_Regressor(torch.nn.Module):
         use_second_encoder=None,
         use_first_encoder=True,
         device='cuda',
-        use_pose=False 
+        use_pose=False,
+        config=None
     ):
         super().__init__()
         self.device = torch.device(device)
         self.use_first_encoder = use_first_encoder
-        self.use_pose = use_pose  # <--- salva la scelta
+        self.use_pose = use_pose 
+        self.config = config
+        self.transformer_head = Transformer_Head(config)
+
+        if config is None:
+            config = {}
 
         # Main encoder
         if use_first_encoder:
-            self.first_encoder = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(self.device)
+            self.first_encoder = Marepo_Regressor(mean, num_head_blocks, use_homogeneous, config=config).to(self.device)
         else:
             self.first_encoder = None
 

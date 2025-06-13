@@ -32,7 +32,8 @@ def train_loop(
     use_pose=True,
     epochs=10,
     device='cuda',
-    patience=3
+    patience=3,
+    config_path=None
 ):
     if device == 'cuda' and not torch.cuda.is_available():
         print("CUDA not available, using CPU instead")
@@ -40,6 +41,13 @@ def train_loop(
     
     device = torch.device(device)
     
+    # Carica la configurazione se fornita
+    config = {}
+    if config_path is not None:
+        import json
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
     model = VPR_Regressor(
         mean=mean,
         num_head_blocks=num_head_blocks,
@@ -48,6 +56,7 @@ def train_loop(
         use_first_encoder=use_first_encoder,
         device=device,
         use_pose=True,
+        config=config
     ).to(device)
 
     optimizer = Adam(model.get_trainable_parameters())
