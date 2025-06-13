@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .linear_attention import LinearAttention, FullAttention
 from einops.einops import rearrange, repeat
-from Transformer.position_encoding import PositionEncodingSine
+from .position_encoding import PositionEncodingSine
 import pytorch3d.transforms as transforms
 
 import importlib.util
