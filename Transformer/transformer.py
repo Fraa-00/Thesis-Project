@@ -249,7 +249,7 @@ class Transformer_Head(nn.Module):
         else:
             self.fc_rot = nn.Linear(self.d_model, 6)
         # Learn scene coordinates relative to a mean coordinate (e.g. center of the scene).
-        self.register_buffer("transformer_pose_mean", self.config['transformer_pose_mean'].clone().detach().view(1, 3, 1, 1)) # torch.Size([1, 3, 1, 1])
+        self.register_buffer("transformer_pose_mean", torch.zeros(1, 3, 1, 1)) # torch.Size([1, 3, 1, 1])
 
         self.more_mlps = nn.Sequential(
             nn.Linear(self.d_model,self.d_model),
