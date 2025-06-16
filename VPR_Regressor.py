@@ -49,7 +49,7 @@ class VPR_Regressor(torch.nn.Module):
         feats = []
         if self.use_first_encoder:
             feat1 = self.first_encoder_back(TF.rgb_to_grayscale(imgs))
-            feat1 = self.first_encoder_head(features)
+            feat1 = self.first_encoder_head(feat1)
             # Ottieni feature map (batch, 512, H, W) -> pooling -> (batch, 512)
             feats.append(feat1)
         if self.second_encoder:
@@ -64,8 +64,9 @@ class VPR_Regressor(torch.nn.Module):
 
     def get_trainable_parameters(self):
         params = []
-        if self.first_encoder:
-            params += list(self.first_encoder.parameters())
+        if self.use_first_encoder:
+            params += list(self.first_encoder_back.parameters())
+            params += list(self.first_encoder_head.parameters())
         if self.second_encoder:
             params += list(self.second_encoder.parameters())
         params += list(self.mlp.parameters())
