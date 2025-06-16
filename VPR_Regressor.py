@@ -1,6 +1,6 @@
 import torch
 import torchvision.transforms.functional as TF
-from Network import Marepo_Regressor, MLP
+from Network import Regressor, MLP
 from Pretrained_net import DinoV2, MegaLoc
 import json
 
@@ -25,7 +25,7 @@ class VPR_Regressor(torch.nn.Module):
 
         # Main encoder
         if use_first_encoder:
-            self.first_encoder = Marepo_Regressor.create_from_split_state_dict(
+            self.first_encoder = Regressor.create_from_split_state_dict(
                 encoder_state_dict= torch.load("marepo_pretrained/marepo/marepo.pt", weights_only=False),
                 head_state_dict= torch.load("ace_encoder_pretrained.pt", weights_only=False),
                 config=config
