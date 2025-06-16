@@ -21,7 +21,7 @@ def Marepo():
 def Ace():
        ACE_HEAD_PATH = "marepo_pretrained/marepo/marepo.pt"
        device = "cuda" if torch.cuda.is_available() else "cpu"
-       model = torch.load(ACE_HEAD_PATH, map_location=device), weights_only=False
+       model = torch.load(ACE_HEAD_PATH, map_location=device, weights_only=False)
        return model
 
 
