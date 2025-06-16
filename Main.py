@@ -17,44 +17,44 @@ random.seed(SEED)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
-# if __name__ == "__main__":
-#     # Check CUDA availability
-#     device = "cuda" if torch.cuda.is_available() else "cpu"
+if __name__ == "__main__":
+    # Check CUDA availability
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
-#     # Set your dataset root directory here
-#     root_dir_train = "/kaggle/input/sf-xs/sf_xs/train"
-#     root_dir_val = "/kaggle/input/sf-xs/sf_xs/val"
-#     root_dir_test = "/kaggle/input/sf-xs/sf_xs/test"
+    # Set your dataset root directory here
+    root_dir_train = "/kaggle/input/sf-xs/sf_xs/train"
+    root_dir_val = "/kaggle/input/sf-xs/sf_xs/val"
+    root_dir_test = "/kaggle/input/sf-xs/sf_xs/test"
 
-#     # Create dataset and dataloader with optimizations
-#     train_dataset = get_dataset(root_dir_train, rgb_transform=rgb_transforms)
-#     train_dataloader = DataLoader(
-#         train_dataset, 
-#         batch_size=4, 
-#         shuffle=True,
-#         num_workers=2,  # Parallel data loading
-#         pin_memory=True if device == "cuda" else False  # Faster data transfer to GPU
-#     )
+    # Create dataset and dataloader with optimizations
+    train_dataset = get_dataset(root_dir_train, rgb_transform=rgb_transforms)
+    train_dataloader = DataLoader(
+        train_dataset, 
+        batch_size=4, 
+        shuffle=True,
+        num_workers=2,  # Parallel data loading
+        pin_memory=True if device == "cuda" else False  # Faster data transfer to GPU
+    )
 
-#     val_dataset = get_dataset(root_dir_val, rgb_transform=rgb_transforms)
-#     val_dataloader = DataLoader(
-#         val_dataset, 
-#         batch_size=4, 
-#         shuffle=False,
-#         num_workers=2,
-#         pin_memory=True if device == "cuda" else False
-#     )
+    val_dataset = get_dataset(root_dir_val, rgb_transform=rgb_transforms)
+    val_dataloader = DataLoader(
+        val_dataset, 
+        batch_size=4, 
+        shuffle=False,
+        num_workers=2,
+        pin_memory=True if device == "cuda" else False
+    )
 
 
-#     # Run training loop
-#     train_loop(
-#         train_dataloader=train_dataloader,
-#         val_dataloader=val_dataloader,
-#         use_second_encoder='dino',
-#         use_first_encoder=True,
-#         epochs=1,
-#         device=device,
-#     )
+    # Run training loop
+    train_loop(
+        train_dataloader=train_dataloader,
+        val_dataloader=val_dataloader,
+        use_second_encoder='dino',
+        use_first_encoder=True,
+        epochs=1,
+        device=device,
+    )
 
     # # Ricrea il modello con gli stessi parametri usati nel training
     # model = VPR_Regressor(
@@ -72,6 +72,4 @@ torch.backends.cudnn.benchmark = False
     # # Valuta il modello caricato
     # val_loss = evaluation_loop(model, val_dataloader, my_loss(), device)
     # print(f"Validation loss del modello caricato: {val_loss:.4f}")
-marepo = Marepo()
-ace = Ace()
 
