@@ -26,7 +26,7 @@ class VPR_Regressor(torch.nn.Module):
         # Main encoder
         if use_first_encoder:
             self.first_encoder = Regressor.create_from_split_state_dict(
-                encoder_state_dict= torch.load("marepo_pretrained/marepo/marepo.pt", weights_only=False),
+                encoder_state_dict= torch.load("marepo.pt", weights_only=False),
                 head_state_dict= torch.load("ace_encoder_pretrained.pt", weights_only=False),
                 config=config
             ).to(self.device)
