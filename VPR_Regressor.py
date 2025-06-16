@@ -7,7 +7,7 @@ import json
 class VPR_Regressor(torch.nn.Module):
     def __init__(
         self,
-        mean=torch.zeros(1, 3, 1, 1),
+        mean,
         num_head_blocks=1,
         use_homogeneous=True,
         use_second_encoder=None,

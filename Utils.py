@@ -1,5 +1,4 @@
 import torch
-import matplotlib.pyplot as plt
 
 def visualize_predictions(model, dataloader, device, num_samples=5):
     model.eval()

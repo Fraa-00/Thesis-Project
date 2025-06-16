@@ -5,7 +5,8 @@ import re
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from PIL import Image
+from transformer.transformer import Transformer_Head
+
 
 _logger = logging.getLogger(__name__)
 
@@ -153,7 +154,7 @@ class Marepo_Regressor(nn.Module):
 
     OUTPUT_SUBSAMPLE = 8
 
-    def __init__(self, mean, num_head_blocks = 1, use_homogeneous = True, num_encoder_features=512):
+    def __init__(self, mean, num_head_blocks, use_homogeneous, num_encoder_features=512, config={}):
         """
         Constructor.
 
@@ -167,6 +168,8 @@ class Marepo_Regressor(nn.Module):
         self.feature_dim = num_encoder_features
         self.encoder = AceEncoder(out_channels=self.feature_dim)
         self.heads = MarepoHead(mean, num_head_blocks, use_homogeneous, in_channels=self.feature_dim)
+        self.config=config
+        self.transformer_head = Transformer_Head(config)
 
     @classmethod
     def create_from_encoder(cls, encoder_state_dict, mean, num_head_blocks, use_homogeneous):
@@ -193,6 +196,39 @@ class Marepo_Regressor(nn.Module):
         return regressor
 
     @classmethod
+    def create_from_state_dict(cls, state_dict, config):
+        """
+        Instantiate a regressor from a pretrained state dictionary.
+
+        state_dict: pretrained state dictionary.
+        """
+        # Mean is zero (will be loaded from the state dict).
+        mean = torch.zeros((3,))
+
+        # Count how many head blocks are in the dictionary.
+        pattern = re.compile(r"^heads\.\d+c0\.weight$")
+        num_head_blocks = sum(1 for k in state_dict.keys() if pattern.match(k))
+
+        # Whether the network uses homogeneous coordinates.
+        use_homogeneous = state_dict["heads.fc3.weight"].shape[0] == 4
+
+        # Number of output channels of the last encoder layer.
+        num_encoder_features = state_dict['encoder.res2_conv3.weight'].shape[0]
+
+        # Create a regressor.
+        _logger.info(f"Creating regressor from pretrained state_dict:"
+                     f"\n\tNum head blocks: {num_head_blocks}"
+                     f"\n\tHomogeneous coordinates: {use_homogeneous}"
+                     f"\n\tEncoder feature size: {num_encoder_features}")
+        regressor = cls(mean, num_head_blocks, use_homogeneous, num_encoder_features, config)
+
+        # Load all weights.
+        regressor.load_state_dict(state_dict, strict=False)
+
+        # Done.
+        return regressor
+
+    @classmethod
     def create_from_split_state_dict(cls, encoder_state_dict, head_state_dict, config):
         """
         Instantiate a regressor from a pretrained encoder (scene-agnostic) and a scene-specific head.
@@ -210,6 +246,27 @@ class Marepo_Regressor(nn.Module):
             merged_state_dict[f"heads.{k}"] = v
 
         return cls.create_from_state_dict(merged_state_dict, config)
+
+    @classmethod
+    def load_marepo_from_state_dict(cls, encoder_state_dict, head_state_dict, transformer_state_dict, config):
+        """
+        Load Marepo networks including weights from encoder, head, and transformer head
+        """
+        network = cls.create_from_split_state_dict(encoder_state_dict, head_state_dict, config)
+        network.transformer_head.load_state_dict(transformer_state_dict['aceformer_head'], strict=True)
+        return network
+
+    def load_encoder(self, encoder_dict_file):
+        """
+        Load weights into the encoder network.
+        """
+        self.encoder.load_state_dict(torch.load(encoder_dict_file))
+
+    def load_head(self, head_dict_file):
+        """
+        Load weights into the heads network.
+        """
+        self.heads.load_state_dict(torch.load(head_dict_file))
 
     def get_features(self, inputs):
         return self.encoder(inputs)

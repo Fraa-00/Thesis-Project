@@ -4,7 +4,6 @@ import torch
 import random
 import numpy as np
 from torch.utils.data import DataLoader
-from Pretrained_net import DinoV2, MegaLoc, Marepo, Ace
 from Get_dataset import get_dataset, rgb_transforms
 from Training import train_loop
 
@@ -58,7 +57,7 @@ if __name__ == "__main__":
 
     # # Ricrea il modello con gli stessi parametri usati nel training
     # model = VPR_Regressor(
-    #     mean=0,
+    #     mean,
     #     num_head_blocks=1,
     #     use_homogeneous=True,
     #     use_second_encoder='dino',  # o quello che hai usato
