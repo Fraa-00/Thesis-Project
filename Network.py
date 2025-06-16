@@ -154,7 +154,7 @@ class Regressor(nn.Module):
 
     OUTPUT_SUBSAMPLE = 8
 
-    def __init__(self, mean, num_head_blocks, use_homogeneous, num_encoder_features=512, config={}):
+    def __init__(self, mean, num_head_blocks=1, use_homogeneous=True, num_encoder_features=512, config={}):
         """
         Constructor.
 
