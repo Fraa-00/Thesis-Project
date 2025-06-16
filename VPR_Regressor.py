@@ -19,7 +19,8 @@ class VPR_Regressor(torch.nn.Module):
 
         # Main encoder
         if use_first_encoder:
-            self.first_encoder = Marepo_Regressor(mean, num_head_blocks, use_homogeneous).to(self.device)
+            self.first_encoder_back = Ace()
+            self.first_encoder_head = Marepo()
         else:
             self.first_encoder = None
 
@@ -32,13 +33,13 @@ class VPR_Regressor(torch.nn.Module):
             second_dim = 8448
         else:
             self.second_encoder = None
-            second_dim = 512
+            second_dim = 6
 
         # Input dimension for MLP
         if use_first_encoder and self.second_encoder:
-            input_dim = 512 + second_dim
+            input_dim = 6 + second_dim
         elif use_first_encoder:
-            input_dim = 512
+            input_dim = 6
         else:
             input_dim = second_dim
 
@@ -47,11 +48,10 @@ class VPR_Regressor(torch.nn.Module):
     def forward(self, imgs):
         feats = []
         if self.use_first_encoder:
-            features = self.first_encoder.get_features(TF.rgb_to_grayscale(imgs))
+            feat1 = self.first_encoder_back(TF.rgb_to_grayscale(imgs))
+            feat1 = self.first_encoder_head(features)
             # Ottieni feature map (batch, 512, H, W) -> pooling -> (batch, 512)
-            feat1_flat = features.flatten(2).permute(0, 2, 1)
-            feat1_flat = torch.max(feat1_flat, dim=1)[0]
-            feats.append(feat1_flat)
+            feats.append(feat1)
         if self.second_encoder:
             feat2 = self.second_encoder(imgs)
             feats.append(feat2)
