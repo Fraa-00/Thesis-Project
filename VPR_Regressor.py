@@ -1,7 +1,8 @@
 import torch
 import torchvision.transforms.functional as TF
 from Network import Marepo_Regressor, MLP
-from Pretrained_net import DinoV2, MegaLoc, Marepo,  Ace
+from Pretrained_net import DinoV2, MegaLoc
+import json
 
 class VPR_Regressor(torch.nn.Module):
     def __init__(
@@ -17,10 +18,18 @@ class VPR_Regressor(torch.nn.Module):
         self.device = torch.device(device)
         self.use_first_encoder = use_first_encoder
 
+        # Carica il file di configurazione JSON
+        with open("marepo_pretrained/marepo/nerf_focal_12T1R_256_homo.json", "r") as f:
+            config = json.load(f)
+
+
         # Main encoder
         if use_first_encoder:
-            self.first_encoder_back = Ace()
-            self.first_encoder_head = Marepo()
+            self.first_encoder = Marepo_Regressor.create_from_split_state_dict(
+                encoder_state_dict= torch.load("marepo_pretrained/marepo/marepo.pt"),
+                head_state_dict= torch.load("ace_encoder_pretrained.pt"),
+                config=config
+            ).to(self.device)
         else:
             self.first_encoder = None
 
@@ -48,9 +57,7 @@ class VPR_Regressor(torch.nn.Module):
     def forward(self, imgs):
         feats = []
         if self.use_first_encoder:
-            feat1 = self.first_encoder_back(TF.rgb_to_grayscale(imgs))
-            feat1 = self.first_encoder_head(feat1)
-            # Ottieni feature map (batch, 512, H, W) -> pooling -> (batch, 512)
+            feat1 = self.first_encoder.get_pose(TF.rgb_to_grayscale(imgs))
             feats.append(feat1)
         if self.second_encoder:
             feat2 = self.second_encoder(imgs)
@@ -65,8 +72,7 @@ class VPR_Regressor(torch.nn.Module):
     def get_trainable_parameters(self):
         params = []
         if self.use_first_encoder:
-            params += list(self.first_encoder_back.parameters())
-            params += list(self.first_encoder_head.parameters())
+            params += list(self.first_encoder.parameters())
         if self.second_encoder:
             params += list(self.second_encoder.parameters())
         params += list(self.mlp.parameters())

@@ -62,7 +62,7 @@ class MarepoHead(nn.Module):
     """
 
     def __init__(self,
-                 mean = 0,
+                 mean,
                  num_head_blocks = 1,
                  use_homogeneous = True,
                  homogeneous_min_scale=0.01,
@@ -112,7 +112,7 @@ class MarepoHead(nn.Module):
             self.fc3 = nn.Conv2d(self.head_channels, 3, 1, 1, 0)
 
         # Learn scene coordinates relative to a mean coordinate (e.g. center of the scene).
-        # self.register_buffer("mean", mean.clone().detach().view(1, 3, 1, 1))
+        self.register_buffer("mean", mean.clone().detach().view(1, 3, 1, 1))
 
     def forward(self, res):
         x = F.relu(self.res3_conv1(res))
@@ -140,7 +140,7 @@ class MarepoHead(nn.Module):
             sc = sc[:, :3] / h_slice
 
         # Add the mean to the predicted coordinates.
-        # sc += self.mean
+        sc += self.mean
 
         return sc
     
@@ -153,7 +153,7 @@ class Marepo_Regressor(nn.Module):
 
     OUTPUT_SUBSAMPLE = 8
 
-    def __init__(self, mean = torch.zeros(1, 3, 1, 1), num_head_blocks = 1, use_homogeneous = True, num_encoder_features=512):
+    def __init__(self, mean, num_head_blocks = 1, use_homogeneous = True, num_encoder_features=512):
         """
         Constructor.
 
@@ -192,14 +192,33 @@ class Marepo_Regressor(nn.Module):
         # Done.
         return regressor
 
+    @classmethod
+    def create_from_split_state_dict(cls, encoder_state_dict, head_state_dict, config):
+        """
+        Instantiate a regressor from a pretrained encoder (scene-agnostic) and a scene-specific head.
+
+        encoder_state_dict: encoder state dictionary
+        head_state_dict: scene-specific head state dictionary
+        """
+        # We simply merge the dictionaries and call the other constructor.
+        merged_state_dict = {}
+
+        for k, v in encoder_state_dict.items():
+            merged_state_dict[f"encoder.{k}"] = v
+
+        for k, v in head_state_dict.items():
+            merged_state_dict[f"heads.{k}"] = v
+
+        return cls.create_from_state_dict(merged_state_dict, config)
+
     def get_features(self, inputs):
         return self.encoder(inputs)
 
     def get_scene_coordinates(self, features):
         return self.heads(features)
 
-    # def get_pose(self, sc, intrinsics_B33=None, sc_mask=None, random_rescale_sc=False):
-    #     return self.transformer_head(sc, intrinsics_B33, sc_mask, random_rescale_sc)
+    def get_pose(self, sc, intrinsics_B33=None, sc_mask=None, random_rescale_sc=False):
+        return self.transformer_head(sc, intrinsics_B33, sc_mask, random_rescale_sc)
 
 class MLP(nn.Module):
     def __init__(self, input_dim=512, hidden_dim=64, device=None):
