@@ -10,7 +10,7 @@ from transformer.transformer import Transformer_Head
 
 _logger = logging.getLogger(__name__)
 
-class AceEncoder(nn.Module):
+class Encoder(nn.Module):
     """
     FCN encoder, used to extract features from the input images.
 
@@ -18,7 +18,7 @@ class AceEncoder(nn.Module):
     """
 
     def __init__(self, out_channels=512):
-        super(AceEncoder, self).__init__()
+        super(Encoder, self).__init__()
 
         self.out_channels = out_channels
 
@@ -57,7 +57,7 @@ class AceEncoder(nn.Module):
 
         return x
     
-class MarepoHead(nn.Module):
+class Head(nn.Module):
     """
     MLP network predicting per-pixel scene coordinates given a feature vector. All layers are 1x1 convolutions.
     """
@@ -69,7 +69,7 @@ class MarepoHead(nn.Module):
                  homogeneous_min_scale=0.01,
                  homogeneous_max_scale=4.0,
                  in_channels=512):
-        super(MarepoHead, self).__init__()
+        super(Head, self).__init__()
 
         self.use_homogeneous = use_homogeneous
         self.in_channels = in_channels  # Number of encoder features.
@@ -93,9 +93,9 @@ class MarepoHead(nn.Module):
                 nn.Conv2d(self.head_channels, self.head_channels, 1, 1, 0),
             ))
 
-            super(MarepoHead, self).add_module(str(block) + 'c0', self.res_blocks[block][0])
-            super(MarepoHead, self).add_module(str(block) + 'c1', self.res_blocks[block][1])
-            super(MarepoHead, self).add_module(str(block) + 'c2', self.res_blocks[block][2])
+            super(Head, self).add_module(str(block) + 'c0', self.res_blocks[block][0])
+            super(Head, self).add_module(str(block) + 'c1', self.res_blocks[block][1])
+            super(Head, self).add_module(str(block) + 'c2', self.res_blocks[block][2])
 
         self.fc1 = nn.Conv2d(self.head_channels, self.head_channels, 1, 1, 0)
         self.fc2 = nn.Conv2d(self.head_channels, self.head_channels, 1, 1, 0)
@@ -145,7 +145,7 @@ class MarepoHead(nn.Module):
 
         return sc
     
-class Marepo_Regressor(nn.Module):
+class Regressor(nn.Module):
     """
     FCN architecture for scene coordinate regression.
 
@@ -163,11 +163,11 @@ class Marepo_Regressor(nn.Module):
         use_homogeneous: Whether to learn homogeneous or 3D coordinates.
         num_encoder_features: Number of channels output of the encoder network.
         """
-        super(Marepo_Regressor, self).__init__()
+        super(Regressor, self).__init__()
 
         self.feature_dim = num_encoder_features
-        self.encoder = AceEncoder(out_channels=self.feature_dim)
-        self.heads = MarepoHead(mean, num_head_blocks, use_homogeneous, in_channels=self.feature_dim)
+        self.encoder = Encoder(out_channels=self.feature_dim)
+        self.heads = Head(mean, num_head_blocks, use_homogeneous, in_channels=self.feature_dim)
         self.config=config
         self.transformer_head = Transformer_Head(config)
 
