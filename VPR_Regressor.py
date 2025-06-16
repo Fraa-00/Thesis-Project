@@ -19,7 +19,7 @@ class VPR_Regressor(torch.nn.Module):
         self.use_first_encoder = use_first_encoder
 
         # Carica il file di configurazione JSON
-        with open("marepo_pretrained/marepo/nerf_focal_12T1R_256_homo.json", "r") as f:
+        with open("nerf_focal_12T1R_256_homo.json", "r") as f:
             config = json.load(f)
 
 
