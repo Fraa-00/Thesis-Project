@@ -1,6 +1,7 @@
 import torch
 import torchvision.transforms.functional as TF
-from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
+from Network import Marepo_Regressor, MLP
+from Pretrained_net import DinoV2, MegaLoc, Marepo,  Ace
 
 class VPR_Regressor(torch.nn.Module):
     def __init__(

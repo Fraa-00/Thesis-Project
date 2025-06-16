@@ -201,19 +201,6 @@ class Marepo_Regressor(nn.Module):
     # def get_pose(self, sc, intrinsics_B33=None, sc_mask=None, random_rescale_sc=False):
     #     return self.transformer_head(sc, intrinsics_B33, sc_mask, random_rescale_sc)
 
-def DinoV2():
-    model_type = "dinov2_vitb14"
-    model = torch.hub.load('facebookresearch/dinov2', model_type)
-    model = model.to("cuda" if torch.cuda.is_available() else "cpu")
-    model.eval()
-    return model
-
-def MegaLoc():
-    model = torch.hub.load("gmberton/MegaLoc", "get_trained_model")
-    model = model.to("cuda" if torch.cuda.is_available() else "cpu")
-    model.eval()
-    return model
-
 class MLP(nn.Module):
     def __init__(self, input_dim=512, hidden_dim=64, device=None):
         super().__init__()

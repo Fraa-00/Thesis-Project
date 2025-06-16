@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 import random
 import numpy as np
-from Network import Marepo_Regressor, DinoV2, MegaLoc, MLP
+from Network import Marepo_Regressor, MLP
 from Get_dataset import rgb_transforms
 import torchvision.transforms.functional as TF
 from My_Loss import my_loss
@@ -11,6 +11,7 @@ from Eval import evaluation_loop
 from Utils import visualize_predictions
 import os
 from VPR_Regressor import VPR_Regressor
+from Pretrained_net import DinoV2, MegaLoc, Marepo, Ace
 
 # Set seeds for reproducibility
 SEED = 42
