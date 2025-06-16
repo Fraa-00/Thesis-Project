@@ -15,14 +15,14 @@ def MegaLoc():
 
 def Marepo():
     MAREPO_MODEL_PATH = "ace_encoder_pretrained.pt"
-    model = torch.load(MAREPO_MODEL_PATH)
-    model = model.to("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = torch.load(MAREPO_MODEL_PATH, map_location=device)
     return model
 
 def Ace():
        ACE_HEAD_PATH = "marepo_pretrained\marepo\marepo.pt"
-       model = torch.load(ACE_HEAD_PATH)
-       model = model.to("cuda" if torch.cuda.is_available() else "cpu")
+       device = "cuda" if torch.cuda.is_available() else "cpu"
+       model = torch.load(ACE_HEAD_PATH, map_location=device)
        return model
 
 
